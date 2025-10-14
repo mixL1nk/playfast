@@ -7,8 +7,8 @@ This document explains the pre-commit hooks configuration for Playfast.
 We use a **multi-stage hook strategy** to balance code quality and developer productivity:
 
 1. **Pre-commit (Fast)**: Auto-fix formatting and linting
-2. **Pre-push (Comprehensive)**: Type-checking and tests
-3. **Manual (Full)**: Complete validation before release
+1. **Pre-push (Comprehensive)**: Type-checking and tests
+1. **Manual (Full)**: Complete validation before release
 
 ## Hook Stages
 
@@ -17,6 +17,7 @@ We use a **multi-stage hook strategy** to balance code quality and developer pro
 **Goal**: Keep code formatted and catch obvious errors
 
 **Hooks**:
+
 - ✅ **Ruff Format** - Auto-format Python code
 - ✅ **Ruff Lint** - Auto-fix linting issues
 - ✅ **mdformat** - Format Markdown files
@@ -26,6 +27,7 @@ We use a **multi-stage hook strategy** to balance code quality and developer pro
 **Speed**: ~2-5 seconds
 
 **Behavior**:
+
 - Automatically fixes most issues
 - Fails only if auto-fix isn't possible
 - Skippable with `git commit --no-verify` (not recommended)
@@ -35,6 +37,7 @@ We use a **multi-stage hook strategy** to balance code quality and developer pro
 **Goal**: Ensure code quality before sharing
 
 **Hooks**:
+
 - ✅ **All pre-commit checks**
 - ✅ **Pyright** - Static type checking
 - ✅ **Mypy** - Additional type validation
@@ -43,6 +46,7 @@ We use a **multi-stage hook strategy** to balance code quality and developer pro
 **Speed**: ~30-60 seconds (depends on test suite)
 
 **Behavior**:
+
 - Runs automatically before `git push`
 - Catches type errors and test failures
 - Prevents pushing broken code
@@ -52,11 +56,13 @@ We use a **multi-stage hook strategy** to balance code quality and developer pro
 **Goal**: Complete validation before release
 
 **Command**:
+
 ```bash
 uv run pre-commit run --hook-stage manual --all-files
 ```
 
 **Includes**:
+
 - All checks from pre-commit and pre-push
 - Additional custom validations
 - Full project scan
@@ -130,9 +136,9 @@ uv run poe check
 The release workflow automatically:
 
 1. **Skips uv-lock** during semantic-release (uses `SKIP=uv-lock`)
-2. **Runs formatters** after changelog generation
-3. **Amends commit** with formatting changes
-4. **Moves tag** to final commit
+1. **Runs formatters** after changelog generation
+1. **Amends commit** with formatting changes
+1. **Moves tag** to final commit
 
 See [release-workflow.md](release-workflow.md) for details.
 
@@ -143,6 +149,7 @@ See [release-workflow.md](release-workflow.md) for details.
 **Cause**: Code has formatting issues that couldn't be auto-fixed
 
 **Solution**:
+
 ```bash
 # Run formatter manually
 uv run ruff format python/
@@ -160,6 +167,7 @@ git commit -m "fix: resolve formatting"
 **Cause**: Linting issues that require manual intervention
 
 **Solution**:
+
 ```bash
 # See what needs fixing
 uv run ruff check python/
@@ -180,6 +188,7 @@ git commit -m "fix: resolve linting issues"
 **Cause**: pyproject.toml changed but lockfile not updated
 
 **Solution**:
+
 ```bash
 # Update lockfile manually
 uv lock
@@ -194,6 +203,7 @@ git commit -m "chore: update lockfile"
 **Cause**: Type checking found issues
 
 **Solution**:
+
 ```bash
 # Run type checker locally
 uv run pyright
@@ -211,6 +221,7 @@ git push
 **Cause**: Test failures
 
 **Solution**:
+
 ```bash
 # Run tests locally
 uv run pytest
@@ -227,12 +238,14 @@ git push
 If pre-push hooks are too slow, you can:
 
 **Option 1**: Skip specific tests
+
 ```bash
 # In pyproject.toml, modify pre-commit-check:
 pre-commit-check = ["fmt", "lint", "pyright"]  # Remove "test"
 ```
 
 **Option 2**: Use pytest markers
+
 ```bash
 # Run only fast tests in hook
 # In .pre-commit-config.yaml:
@@ -240,6 +253,7 @@ entry: uv run pytest -m "not slow"
 ```
 
 **Option 3**: Disable pre-push locally
+
 ```bash
 # Remove pre-push hook
 rm .git/hooks/pre-push
@@ -250,19 +264,19 @@ git push
 
 ## Best Practices
 
-### ✅ Do:
+### ✅ Do
 
 1. **Let hooks auto-fix** - Commit, let hooks run, review changes, commit again
-2. **Run checks before push** - `uv run poe check` before important pushes
-3. **Keep tests fast** - Mark slow tests with `@pytest.mark.slow`
-4. **Update hooks regularly** - `uv run pre-commit autoupdate`
+1. **Run checks before push** - `uv run poe check` before important pushes
+1. **Keep tests fast** - Mark slow tests with `@pytest.mark.slow`
+1. **Update hooks regularly** - `uv run pre-commit autoupdate`
 
-### ❌ Don't:
+### ❌ Don't
 
 1. **Don't skip hooks regularly** - They catch bugs early
-2. **Don't commit broken code** - Fix issues before committing
-3. **Don't disable all checks** - Balance speed and quality
-4. **Don't ignore type errors** - They often indicate real bugs
+1. **Don't commit broken code** - Fix issues before committing
+1. **Don't disable all checks** - Balance speed and quality
+1. **Don't ignore type errors** - They often indicate real bugs
 
 ## Performance Tips
 
@@ -297,17 +311,18 @@ exclude = ["tests", "examples"]  # Skip non-critical
 
 ## Comparison with CI
 
-| Check | Pre-commit | Pre-push | CI |
-|-------|-----------|----------|-----|
-| Ruff Format | ✅ Auto-fix | ✅ Verify | ✅ Verify |
-| Ruff Lint | ✅ Auto-fix | ✅ Verify | ✅ Verify |
-| Pyright | ❌ | ✅ Run | ✅ Run |
-| Mypy | ❌ | ✅ Run | ✅ Run |
-| Pytest | ❌ | ✅ Fast tests | ✅ Full suite |
-| Coverage | ❌ | ❌ | ✅ With report |
-| Build Wheels | ❌ | ❌ | ✅ Multi-platform |
+| Check        | Pre-commit  | Pre-push      | CI                |
+| ------------ | ----------- | ------------- | ----------------- |
+| Ruff Format  | ✅ Auto-fix | ✅ Verify     | ✅ Verify         |
+| Ruff Lint    | ✅ Auto-fix | ✅ Verify     | ✅ Verify         |
+| Pyright      | ❌          | ✅ Run        | ✅ Run            |
+| Mypy         | ❌          | ✅ Run        | ✅ Run            |
+| Pytest       | ❌          | ✅ Fast tests | ✅ Full suite     |
+| Coverage     | ❌          | ❌            | ✅ With report    |
+| Build Wheels | ❌          | ❌            | ✅ Multi-platform |
 
 **Philosophy**:
+
 - **Pre-commit**: Fast feedback loop
 - **Pre-push**: Quality gate
 - **CI**: Comprehensive validation + deployment
