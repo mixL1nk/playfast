@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2025-10-14
+
+### 🐛 Bug Fixes
+
+- Remove --strict flag from mkdocs build to allow documentation warnings (be8cb76)
+- Create virtual environment before installing docs dependencies (1fced98)
+
+### 💄 Styling
+
+- Format generate_changelog.py with ruff (ee1be49)
+
+### 📚 Documentation
+
+- Update copyright year to 2024-2025 (b840732)
+
+### 🔧 Miscellaneous Tasks
+
+- Use PyO3/maturin-action for standard cross-platform builds (1524233)
+- Optimize test matrix to reduce CI time (e318baf)
+- Optimize documentation workflow for faster builds (20c931d)
+- Remove redundant build-test job (e728757)
+- Optimize GitHub Actions workflows for faster builds (9adb91b)
+- **release:** 0.3.1 (664d37f)
+
 ## [0.3.0] - 2025-10-14
 
 ### 🐛 Bug Fixes
@@ -18,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔧 Miscellaneous Tasks
 
 - Remove setup guide and update README with actual Gist ID (9ac46f9)
-- **release:** 0.3.0 (4afa487)
+- **release:** 0.3.0 (58d8130)
 
 ### 🚀 Features
 
