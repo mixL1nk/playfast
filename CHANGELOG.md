@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🐛 Bug Fixes
 
 - Use environment variable for version to avoid PowerShell parsing issues (6fc27ec)
+- Use shell=True on Windows for uv command in changelog generation (eab572c)
+- Use python directly in build_command for semantic-release compatibility (b3d1361)
+- Disable build_command to avoid bash compatibility issues on Windows (08b4b3b)
+
+### 🔧 Miscellaneous Tasks
+
+- Prepare for release 0.2.1 (f18d6f3)
 
 ## [0.2.0] - 2025-10-14
 
