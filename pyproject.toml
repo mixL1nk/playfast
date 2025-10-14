@@ -245,7 +245,8 @@ changelog_file = "CHANGELOG.md"
 upload_to_vcs_release = false
 remote.type = "github"
 remote.token.env = "GH_TOKEN"
-# commit_author: Use default git config (local dev) or set in CI (e.g., github-actions[bot])
+# Use git config for commit author
+commit_author = "Taeyun Jang <taeyun16@pm.me>"
 
 [tool.semantic_release.branches.main]
 match = "(main|master)"
