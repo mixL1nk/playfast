@@ -20,14 +20,28 @@ def main() -> None:
     env["PYTHONUTF8"] = "1"
 
     # Run git-cliff via uv and capture output
-    result = subprocess.run(
-        ["uv", "run", "git-cliff", "--tag", f"v{version}"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-        env=env,
-    )
+    # Use shell=True on Windows to find uv in PATH
+    import platform
+
+    if platform.system() == "Windows":
+        result = subprocess.run(
+            f'uv run git-cliff --tag v{version}',
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+            env=env,
+            shell=True,
+        )
+    else:
+        result = subprocess.run(
+            ["uv", "run", "git-cliff", "--tag", f"v{version}"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            check=True,
+            env=env,
+        )
 
     # Write to CHANGELOG.md
     changelog_path = Path("CHANGELOG.md")
