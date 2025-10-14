@@ -22,13 +22,12 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.12'
             run-tests: true
-          # Build-only checks for cross-platform compatibility
-          - os: windows-latest
-            python-version: '3.11'
-            run-tests: false
+          # macOS build verification
           - os: macos-latest
             python-version: '3.11'
             run-tests: false
+          # Note: Windows CI removed - verified via release workflow
+          # Windows users install pre-built wheels from PyPI
 
     steps:
       - uses: actions/checkout@v4
