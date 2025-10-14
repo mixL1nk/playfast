@@ -86,5 +86,5 @@ sort_commits = "oldest"
 # limit_commits = 42
 
 [remote.github]
-owner = "yourusername"
+owner = "mixL1nk"
 repo = "playfast"

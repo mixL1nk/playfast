@@ -49,12 +49,14 @@ repos:
         pass_filenames: false
         files: ^CHANGELOG\.md$
         always_run: true
+        stages: [pre-commit]  # Only run on manual commits, not semantic-release
 
       - id: poe-check
         name: Run checks through Poe
         entry: uv run poe pre-commit-check
         language: system
         pass_filenames: false
+        stages: [manual]  # Only run manually with 'pre-commit run --hook-stage manual'
   
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.

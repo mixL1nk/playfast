@@ -1,6 +1,6 @@
 [project]
 name = "playfast"
-version = "0.1.0"
+version = "0.1.1"
 description = "Playfast - Lightning-Fast Google Play Store Scraper"
 readme = "README.md"
 authors = [
@@ -220,12 +220,17 @@ exclude_lines = [
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = []
-build_command = "uv run maturin build --release"
-major_on_zero = true
+build_command = "uv run git-cliff --tag v{version} > CHANGELOG.md"
+major_on_zero = false  # Keep 0.x.x versions, don't auto-jump to 1.0.0
+allow_zero_version = true  # Allow version to remain at 0.x.x
 tag_format = "v{version}"
 commit_message = "chore(release): {version}"
-commit_parser = "angular"
+commit_parser = "conventional"  # Use 'conventional' instead of deprecated 'angular'
 changelog_file = "CHANGELOG.md"
+upload_to_vcs_release = false  # Disable GitHub release creation for now
+remote.type = "github"
+remote.token.env = "GH_TOKEN"
+# commit_author: Use default git config (local dev) or set in CI (e.g., github-actions[bot])
 
 [tool.semantic_release.branches.main]
 match = "(main|master)"
@@ -234,7 +239,7 @@ prerelease = false
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["feat", "fix", "perf", "refactor", "docs", "chore", "style", "test", "ci"]
 minor_tags = ["feat"]
-patch_tags = ["fix", "perf", "refactor"]
+patch_tags = ["fix", "perf", "refactor", "chore", "ci", "docs"]  # ci/chore/docs also trigger patch
 
 [tool.poe]
 executor.type = "uv"
