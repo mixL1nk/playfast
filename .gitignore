@@ -18,6 +18,7 @@ wheels/
 .coverage
 .ruff_cache
 htmlcov/
+coverage.xml
 
 # build
 target
