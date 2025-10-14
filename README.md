@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Built with Rust](https://img.shields.io/badge/built%20with-Rust-orange.svg)](https://www.rust-lang.org/)
-[![CI](https://github.com/mixL1nk/playfast/actions/workflows/ci.yml/badge.svg)](https://github.com/mixL1nk/playfast/actions/workflows/ci.yml)
+[![CI](https://github.com/mixL1nk/playfast/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mixL1nk/playfast/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mixL1nk/6a5cda65b343fffe18719b3a9d6d6a3b/raw/playfast-coverage.json)](https://github.com/mixL1nk/playfast/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/playfast?logo=python)](https://pypi.org/project/playfast/)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs-blue)](https://mixL1nk.github.io/playfast/)
