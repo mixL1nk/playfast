@@ -43,12 +43,28 @@ repos:
 
   - repo: local
     hooks:
-      - id: poe-check
-        name: Run checks through Poe
+      # Auto-fix formatting and linting for every commit
+      - id: ruff-format
+        name: Ruff Format (auto-fix)
+        entry: uv run ruff format
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: ruff-lint
+        name: Ruff Lint (auto-fix)
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # Full checks (manual or pre-push only - includes type-check and tests)
+      - id: poe-check-full
+        name: Full Check (fmt, lint, type-check, test)
         entry: uv run poe pre-commit-check
         language: system
         pass_filenames: false
-        stages: [manual]  # Only run manually with 'pre-commit run --hook-stage manual'
+        stages: [manual, push]  # Run on manual or pre-push
   
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.

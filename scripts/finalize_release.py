@@ -2,7 +2,6 @@
 
 import subprocess
 import sys
-from pathlib import Path
 
 
 def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -31,9 +30,7 @@ def main() -> None:
 
     # Run formatters (mdformat, etc.) - allow failure
     print("3. Running formatters...")
-    result = run_command(
-        ["pre-commit", "run", "mdformat", "--all-files"], check=False
-    )
+    result = run_command(["pre-commit", "run", "mdformat", "--all-files"], check=False)
     if result.returncode != 0:
         print("   Formatters modified files")
 
@@ -67,17 +64,19 @@ def main() -> None:
         result = run_command(["git", "log", "-1", "--oneline"])
         print(f"\n✓ Release finalized: {result.stdout.strip()}")
         print(f"✓ Tag: {old_tag}")
-        print(f"\nNext steps:")
-        print(f"  git push origin main")
+        print("\nNext steps:")
+        print("  git push origin main")
         print(f"  git push origin {old_tag}")
     else:
         # Check if current commit has a tag
-        result = run_command(["git", "describe", "--tags", "--exact-match"], check=False)
+        result = run_command(
+            ["git", "describe", "--tags", "--exact-match"], check=False
+        )
         if result.returncode == 0:
             tag = result.stdout.strip()
             print(f"\n✓ Tag already on HEAD: {tag}")
-            print(f"\nNext steps:")
-            print(f"  git push origin main")
+            print("\nNext steps:")
+            print("  git push origin main")
             print(f"  git push origin {tag}")
         else:
             print("\n⚠ Warning: No tag found")

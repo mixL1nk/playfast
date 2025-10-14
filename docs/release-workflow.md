@@ -21,12 +21,13 @@ uv run poe release
 
 This command:
 
-1. ✅ Runs `semantic-release version --no-push` to bump version and create tag
-1. ✅ Generates changelogs (`CHANGELOG.md` and `docs/changelog.md`)
-1. ✅ Amends the commit with changelog files
-1. ✅ Runs formatters (mdformat, etc.)
-1. ✅ Amends again if formatters modified files
-1. ✅ Moves tag to final commit (if needed)
+1. ✅ **Runs full checks** (`uv run poe check`) - format, lint, type-check, tests
+1. ✅ **Runs `semantic-release version --no-push`** to bump version and create tag
+1. ✅ **Generates changelogs** (`CHANGELOG.md` and `docs/changelog.md`)
+1. ✅ **Amends the commit** with changelog files
+1. ✅ **Runs formatters** (mdformat, etc.)
+1. ✅ **Amends again** if formatters modified files
+1. ✅ **Moves tag** to final commit (if needed)
 
 **Output**:
 
@@ -89,7 +90,12 @@ if tag_on_previous_commit:
 Now the workflow is:
 
 ```
+0. Run full checks (fmt, lint, type-check, tests)
+   └─> If checks fail, release aborts ❌
+
 1. semantic-release creates commit + tag
+   Commit A (tagged v0.3.2): chore(release): 0.3.2
+
 2. finalize_release.py:
    - Amends commit with changelogs
    - Runs formatters
@@ -100,6 +106,76 @@ Now the workflow is:
    Commit B (tagged v0.3.2, HEAD): chore(release): 0.3.2  [finalized]
 
    ✅ Tag and HEAD match!
+   ✅ All checks passed before release!
+```
+
+## Complete Release Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ uv run poe release                                          │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 1: Run Full Checks                                     │
+│ ├─ ruff format (auto-fix)                                   │
+│ ├─ ruff check (lint)                                        │
+│ ├─ pyright (type check)                                     │
+│ ├─ mypy (type check)                                        │
+│ └─ pytest (test suite)                                      │
+│                                                             │
+│ ❌ If fails → Release aborts                                │
+│ ✅ If passes → Continue                                     │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 2: semantic-release version --no-push                  │
+│ ├─ Analyze commits (conventional commits)                   │
+│ ├─ Calculate next version (0.3.1 → 0.3.2)                   │
+│ ├─ Update pyproject.toml                                    │
+│ ├─ Create commit: "chore(release): 0.3.2"                   │
+│ └─ Create tag: v0.3.2                                       │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3: generate_changelog.py                               │
+│ ├─ Run git-cliff to generate changelog                      │
+│ ├─ Write CHANGELOG.md                                       │
+│ └─ Write docs/changelog.md                                  │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 4: finalize_release.py                                 │
+│ ├─ Stage changelog files                                    │
+│ ├─ Amend commit (--no-verify)                               │
+│ ├─ Run formatters (mdformat)                                │
+│ ├─ Check for changes                                        │
+│ │  └─ If formatters modified files:                         │
+│ │     ├─ Stage all changes                                  │
+│ │     └─ Amend again (--no-verify)                          │
+│ ├─ Check if tag on previous commit                          │
+│ │  └─ If yes:                                               │
+│ │     ├─ Delete old tag locally                             │
+│ │     └─ Create tag on current commit                       │
+│ └─ Display next steps                                       │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ ✅ Release Ready!                                            │
+│                                                             │
+│ Final state:                                                │
+│   Commit: 7c9b7cf chore(release): 0.3.2 [with changelogs]  │
+│   Tag: v0.3.2 (on same commit)                              │
+│                                                             │
+│ Next steps:                                                 │
+│   git push origin main                                      │
+│   git push origin v0.3.2                                    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Conventional Commits
