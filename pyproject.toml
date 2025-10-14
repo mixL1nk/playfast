@@ -220,18 +220,19 @@ exclude_lines = [
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = []
-build_command = "uv run python scripts/generate_changelog.py {version}"
+build_command = "uv run python scripts/generate_changelog.py"
+build_command_env = ["NEW_VERSION"]  # Pass version as environment variable
 # Keep 0.x.x versions, don't auto-jump to 1.0.0
 major_on_zero = false
 # Allow version to remain at 0.x.x
-allow_zero_version = true  
+allow_zero_version = true
 tag_format = "v{version}"
 commit_message = "chore(release): {version}"
 # Use 'conventional' instead of deprecated 'angular'
-commit_parser = "conventional"  
+commit_parser = "conventional"
 changelog_file = "CHANGELOG.md"
 # Disable GitHub release creation for now
-upload_to_vcs_release = false 
+upload_to_vcs_release = false
 remote.type = "github"
 remote.token.env = "GH_TOKEN"
 # commit_author: Use default git config (local dev) or set in CI (e.g., github-actions[bot])

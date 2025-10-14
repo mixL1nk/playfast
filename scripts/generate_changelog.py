@@ -10,7 +10,10 @@ from pathlib import Path
 
 def main() -> None:
     """Generate CHANGELOG.md and sync to docs folder."""
-    version = sys.argv[1] if len(sys.argv) > 1 else "unreleased"
+    # Get version from environment variable (set by semantic-release) or argument
+    version = os.environ.get("NEW_VERSION") or (
+        sys.argv[1] if len(sys.argv) > 1 else "unreleased"
+    )
 
     # Set UTF-8 encoding for subprocess
     env = os.environ.copy()
