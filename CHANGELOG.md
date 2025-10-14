@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-10-14
+
+### 🔧 Miscellaneous Tasks
+
+- Add project URLs for source, documentation, and changelog (b001425)
+- **release:** 0.4.0 (076c980)
+
+### 🚀 Features
+
+- Add release workflow documentation and finalize release script (7dd6c55)
+
 ## [0.3.2] - 2025-10-14
 
 ### 🐛 Bug Fixes
@@ -13,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Miscellaneous Tasks
 
-- **release:** 0.3.2 (9d84d9e)
+- **release:** 0.3.2 (3706b99)
 
 ## [0.3.1] - 2025-10-14
 
