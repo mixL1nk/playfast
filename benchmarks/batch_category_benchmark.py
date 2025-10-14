@@ -6,13 +6,14 @@ Tests the performance of fetching category lists (top apps) across countries:
 """
 
 import time
+from typing import cast
 
 from playfast import RustClient, fetch_category_lists
 
 
 # Test data
 COUNTRIES = ["us", "kr", "jp"]
-CATEGORIES = ["GAME_ACTION", "SOCIAL", "PRODUCTIVITY"]
+CATEGORIES: list[str | None] = ["GAME_ACTION", "SOCIAL", "PRODUCTIVITY"]
 COLLECTION = "topselling_free"
 NUM_RESULTS = 50
 
@@ -98,7 +99,9 @@ def main() -> None:
     print_header("BATCH CATEGORY LIST FETCHING BENCHMARK")
     print("\nConfiguration:")
     print(f"  Countries: {len(COUNTRIES)} ({', '.join(COUNTRIES)})")
-    print(f"  Categories: {len(CATEGORIES)} ({', '.join(CATEGORIES)})")
+    print(
+        f"  Categories: {len(CATEGORIES)} ({', '.join(cast('list[str]', CATEGORIES))})"
+    )
     print(f"  Results per request: {NUM_RESULTS}")
     print(f"  Total requests: {len(COUNTRIES) * len(CATEGORIES)}")
 

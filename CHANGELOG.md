@@ -5,16 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 2025-10-14
+## [unreleased] - 2025-10-14
+
+### ♻️ Refactor
+
+- Improve type hints and file handling in various scripts (7201493)
+
+### ⚡ Performance
+
+- **ci:** Add path filters to skip CI on docs-only changes (2cb1466)
+
+### 📚 Documentation
+
+- Add semantic-release commit author configuration section (b7f07e7)
+- Add multiple installation methods (pip, uv, poetry) (cf18f7d)
+- Add CI/CD optimization guide with path filtering explanation (3f82b1a)
 
 ### 🔧 Miscellaneous Tasks
 
 - Add project URLs for source, documentation, and changelog (b001425)
-- **release:** 0.4.0 (076c980)
+- **release:** 0.4.0 (ffc0e84)
+- **release:** 0.4.0 (23b3c71)
+- Apply mdformat and markdownlint fixes (b9209bc)
+- Migrate pre-commit config to fix deprecated stage names (9065ace)
+- Configure semantic-release commit author (310ed38)
 
 ### 🚀 Features
 
 - Add release workflow documentation and finalize release script (7dd6c55)
+- Automate version synchronization across all files (66ca1d6)
+- Enhance CI configuration with specific dependency groups for faster installs (649d9e5)
 
 ## [0.3.2] - 2025-10-14
 

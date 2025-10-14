@@ -24,7 +24,9 @@ def fix_ordered_lists(file_path: Path) -> bool:
 
         # Check if this line starts with "1. "
         if re.match(r"^(\s*)1\.\s", line):
-            indent = re.match(r"^(\s*)", line).group(1)
+            indent_match = re.match(r"^(\s*)", line)
+            assert indent_match is not None  # Always matches
+            indent = indent_match.group(1)
 
             # Found start of an ordered list
             list_count = 1
@@ -72,7 +74,7 @@ def main() -> None:
     project_root = Path(__file__).parent.parent
 
     # Find all markdown files
-    md_files = []
+    md_files: list[Path] = []
     for pattern in ["**/*.md"]:
         md_files.extend(project_root.glob(pattern))
 

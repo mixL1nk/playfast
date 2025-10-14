@@ -168,7 +168,7 @@ class MockRustClient:
         fixtures_dir = Path(__file__).parent.parent / "fixtures"
 
         # Load sample data
-        with fixtures_dir.open(fixtures_dir / "sample_app.json") as f:
+        with (fixtures_dir / "sample_app.json").open() as f:
             app_data = json.load(f)
             from pydantic import HttpUrl
 
@@ -184,7 +184,7 @@ class MockRustClient:
                 }
             )
 
-        with fixtures_dir.open(fixtures_dir / "sample_reviews.json") as f:
+        with (fixtures_dir / "sample_reviews.json").open() as f:
             reviews_data = json.load(f)
             from datetime import datetime
 
@@ -284,7 +284,7 @@ class MockAsyncClient:
         fixtures_dir = Path(__file__).parent.parent / "fixtures"
 
         # Load sample data
-        with fixtures_dir.open("sample_app.json") as f:
+        with (fixtures_dir / "sample_app.json").open() as f:
             app_data = json.load(f)
             from pydantic import HttpUrl
 
@@ -300,7 +300,7 @@ class MockAsyncClient:
                 }
             )
 
-        with fixtures_dir.open("sample_reviews.json") as f:
+        with (fixtures_dir / "sample_reviews.json").open() as f:
             reviews_data = json.load(f)
             from datetime import datetime
 

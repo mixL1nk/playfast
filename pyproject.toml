@@ -275,9 +275,6 @@ version_toml = [
     "Cargo.toml:package.version"
 ]
 version_variables = []
-# build_command disabled - changelog generation handled separately
-# build_command = "python scripts/generate_changelog.py"
-# build_command_env = ["NEW_VERSION"]
 # Keep 0.x.x versions, don't auto-jump to 1.0.0
 major_on_zero = false
 # Allow version to remain at 0.x.x
@@ -313,7 +310,7 @@ fmt = "ruff format"
 format.ref = "fmt"
 lint = "ruff check"
 pyright = "pyright"
-mypy = "mypy python"
+mypy = "mypy ."
 fix = "ruff check --fix ."
 fix_unsafe = "ruff check --fix --unsafe-fixes ."
 build_docs = "mkdocs build"
