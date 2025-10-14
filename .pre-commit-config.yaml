@@ -64,7 +64,7 @@ repos:
         entry: uv run poe pre-commit-check
         language: system
         pass_filenames: false
-        stages: [manual, push]  # Run on manual or pre-push
+        stages: [manual, pre-push]  # Run on manual or pre-push
   
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
