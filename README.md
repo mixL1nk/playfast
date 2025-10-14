@@ -39,8 +39,22 @@ Playfast is a high-performance Google Play Store scraper built with **Rust + PyO
 
 ### Installation
 
+**Using pip** (traditional):
+
 ```bash
 pip install playfast
+```
+
+**Using uv** (recommended - faster):
+
+```bash
+uv add playfast
+```
+
+**Using poetry**:
+
+```bash
+poetry add playfast
 ```
 
 ### Option 1: Batch API (Recommended - Easiest & Fastest)
