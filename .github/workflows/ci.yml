@@ -50,15 +50,22 @@ jobs:
           shared-key: ${{ matrix.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install sccache
+        id: sccache
         uses: mozilla-actions/sccache-action@v0.0.6
+        continue-on-error: true
 
       - name: Install dependencies (test group only)
         run: uv sync --group dev
 
-      - name: Build Rust extension
+      - name: Build Rust extension (with sccache)
+        if: steps.sccache.outcome == 'success'
         env:
           RUSTC_WRAPPER: sccache
           SCCACHE_GHA_ENABLED: "true"
+        run: uv run maturin develop --release
+
+      - name: Build Rust extension (without sccache)
+        if: steps.sccache.outcome != 'success'
         run: uv run maturin develop --release
 
       - name: Run tests
