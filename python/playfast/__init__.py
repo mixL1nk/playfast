@@ -28,7 +28,15 @@ Quick Start (AsyncClient):
     >>> asyncio.run(main())
 """
 
-__version__ = "0.1.0"
+# Dynamic version loading from installed package metadata
+try:
+    from importlib.metadata import version
+
+    __version__ = version("playfast")
+except Exception:
+    # Fallback for development or if package not installed
+    __version__ = "0.4.0"
+
 __author__ = "Taeyun Jang"
 __license__ = "MIT"
 
@@ -143,7 +151,7 @@ __all__ = [
 
 def main() -> None:
     """CLI entry point (placeholder)."""
-    print("Playfast v0.1.0 - Lightning-fast Google Play Store scraper")
+    print(f"Playfast v{__version__} - Lightning-fast Google Play Store scraper")
     print("Two client options:")
     print("  - RustClient: Maximum performance (Rust HTTP + parsing)")
     print("  - AsyncClient: Easy async (Python HTTP + Rust parsing)")

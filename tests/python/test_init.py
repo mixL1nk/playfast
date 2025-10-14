@@ -15,10 +15,13 @@ class TestModuleMetadata:
     """Tests for module metadata."""
 
     def test_version_exists(self):
-        """Test that __version__ is defined."""
+        """Test that __version__ is defined and follows semver format."""
         assert hasattr(playfast, "__version__")
         assert isinstance(playfast.__version__, str)
-        assert playfast.__version__ == "0.1.0"
+        # Check version follows semantic versioning (X.Y.Z)
+        parts = playfast.__version__.split(".")
+        assert len(parts) == 3, "Version should be in X.Y.Z format"
+        assert all(part.isdigit() for part in parts), "Version parts should be numeric"
 
     def test_author_exists(self):
         """Test that __author__ is defined."""
@@ -121,7 +124,7 @@ class TestMainFunction:
         playfast.main()
         captured = capsys.readouterr()
         assert "Playfast" in captured.out
-        assert "v0.1.0" in captured.out
+        assert f"v{playfast.__version__}" in captured.out
 
     def test_main_shows_client_options(
         self, capsys: pytest.CaptureFixture[str]
@@ -136,7 +139,7 @@ class TestMainFunction:
         """Test that main() shows version."""
         playfast.main()
         captured = capsys.readouterr()
-        assert "v0.1.0" in captured.out
+        assert f"v{playfast.__version__}" in captured.out
 
 
 class TestImportStructure:

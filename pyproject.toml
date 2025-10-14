@@ -227,7 +227,10 @@ exclude_lines = [
 ]
 
 [tool.semantic_release]
-version_toml = ["pyproject.toml:project.version"]
+version_toml = [
+    "pyproject.toml:project.version",
+    "Cargo.toml:package.version"
+]
 version_variables = []
 # build_command disabled - changelog generation handled separately
 # build_command = "python scripts/generate_changelog.py"
