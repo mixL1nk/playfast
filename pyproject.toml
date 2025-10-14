@@ -35,6 +35,12 @@ dependencies = [
     "pydantic>=2.12.0",
 ]
 
+[project.urls]
+source = "https://github.com/mixL1nk/playfast"
+documentation = "https://mixl1nk.github.io/playfast/"
+changelog = "https://github.com/mixL1nk/playfast/blob/master/CHANGELOG.md"
+
+
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
