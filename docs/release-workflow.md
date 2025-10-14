@@ -291,6 +291,45 @@ git tag v0.4.0
 git push origin main v0.4.0
 ```
 
+## Configuration
+
+### Commit Author
+
+The release commits are created with the author configured in [pyproject.toml](../pyproject.toml):
+
+```toml
+[tool.semantic_release]
+commit_author = "Taeyun Jang <taeyun16@pm.me>"
+```
+
+This ensures release commits show your name instead of the default `semantic-release <semantic-release>`.
+
+**To change the author**:
+
+1. Edit `pyproject.toml`:
+
+   ```toml
+   commit_author = "Your Name <your.email@example.com>"
+   ```
+
+1. Commit the change:
+
+   ```bash
+   git add pyproject.toml
+   git commit -m "chore: update semantic-release commit author"
+   ```
+
+### Other Settings
+
+See [pyproject.toml:229-258](../pyproject.toml#L229-L258) for all semantic-release configuration options:
+
+- `version_toml`: Where to update version number
+- `major_on_zero`: Keep 0.x.x versions (don't auto-jump to 1.0.0)
+- `tag_format`: Git tag format (v{version})
+- `commit_message`: Release commit message format
+- `commit_parser`: Use conventional commits
+- `allowed_tags`: Which commit types trigger releases
+
 ## Best Practices
 
 1. **Always use `uv run poe release`** for local releases
