@@ -25,7 +25,7 @@ def main() -> None:
 
     if platform.system() == "Windows":
         result = subprocess.run(
-            f'uv run git-cliff --tag v{version}',
+            f"uv run git-cliff --tag v{version}",
             capture_output=True,
             encoding="utf-8",
             errors="replace",
