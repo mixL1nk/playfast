@@ -49,16 +49,22 @@ jobs:
           uv run mypy python/
 
       - name: Run tests
-        run: uv run pytest --cov=python/playfast --cov-report=xml
+        run: uv run pytest --cov=python/playfast --cov-report=xml --cov-report=html
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          name: coverage-report
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 30
+
+      - name: Coverage Summary
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        run: |
+          uv run pytest --cov=python/playfast --cov-report=term-missing
 
   lint:
     name: Lint and Format Check
