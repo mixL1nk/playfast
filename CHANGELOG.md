@@ -5,12 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2025-10-14
+
+### 🐛 Bug Fixes
+
+- **release:** Remove aarch64 builds to avoid ring cross-compilation errors (6e505a1)
+
+### 🔧 Miscellaneous Tasks
+
+- **release:** 0.3.2 (9d84d9e)
+
 ## [0.3.1] - 2025-10-14
+
+### ⚡ Performance
+
+- **ci:** Add mold linker for faster Rust builds on Linux (2ac8114)
+- **ci:** Optimize Windows builds with rust-lld linker (f72158c)
+- **ci:** Skip full test suite on Windows/macOS to reduce CI time (7399f0d)
+- **ci:** Remove Windows from CI to reduce build time by 44% (36101c9)
 
 ### 🐛 Bug Fixes
 
 - Remove --strict flag from mkdocs build to allow documentation warnings (be8cb76)
 - Create virtual environment before installing docs dependencies (1fced98)
+- **ci:** Add sccache fallback when GitHub cache service is unavailable (26c9c63)
+- **ci:** Temporarily disable sccache due to GitHub cache service outage (c356793)
+- **release:** Remove Windows ARM64 due to target specification error (df29e2f)
+- Replace OpenSSL with rustls for cross-platform compatibility (58e8975)
 
 ### 💄 Styling
 
@@ -27,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimize documentation workflow for faster builds (20c931d)
 - Remove redundant build-test job (e728757)
 - Optimize GitHub Actions workflows for faster builds (9adb91b)
-- **release:** 0.3.1 (664d37f)
+- **release:** 0.3.1 (93027c7)
 
 ## [0.3.0] - 2025-10-14
 
