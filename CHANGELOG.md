@@ -5,12 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-10-14
+
+### 🐛 Bug Fixes
+
+- Separate release tasks for local and remote push (d181a87)
+
+### 📚 Documentation
+
+- Add setup guide for badges and GitHub Pages deployment (38eedfa)
+
+### 🔧 Miscellaneous Tasks
+
+- Remove setup guide and update README with actual Gist ID (9ac46f9)
+- **release:** 0.3.0 (4afa487)
+
+### 🚀 Features
+
+- Add coverage badge and GitHub Pages documentation deployment (a2161da)
+
 ## [0.2.2] - 2025-10-14
 
 ### 🔧 Miscellaneous Tasks
 
 - Replace Codecov with GitHub native coverage artifact upload (6df1985)
-- **release:** 0.2.2 (a505604)
+- **release:** 0.2.2 (306a506)
 
 ## [0.2.1] - 2025-10-14
 
