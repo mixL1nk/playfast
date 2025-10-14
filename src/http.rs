@@ -123,11 +123,6 @@ impl PlayStoreClient {
             .pool_max_idle_per_host(10)  // Keep 10 idle connections per host
             .pool_idle_timeout(Duration::from_secs(90))  // Keep connections alive for 90s
             .tcp_keepalive(Duration::from_secs(60))  // TCP keepalive
-            // HTTP/2 with ALPN negotiation (not prior_knowledge)
-            .http2_adaptive_window(true)  // Adaptive flow control
-            .http2_keep_alive_interval(Duration::from_secs(30))  // HTTP/2 keepalive
-            .http2_keep_alive_timeout(Duration::from_secs(10))
-            .http2_keep_alive_while_idle(true)  // Keep connection alive when idle
             .build()?;
 
         Ok(Self {
