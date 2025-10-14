@@ -1,6 +1,6 @@
 [project]
 name = "playfast"
-version = "0.2.0"
+version = "0.2.1"
 description = "Playfast - Lightning-Fast Google Play Store Scraper"
 readme = "README.md"
 authors = [
@@ -288,7 +288,7 @@ env = { PYTHONUTF8 = "1" }
 
 [tool.poe.tasks.release]
 cmd = "semantic-release version"
-env = { PYTHONUTF8 = "1" }
+env = { PYTHONUTF8 = "1", SKIP = "uv-lock" }
 
 [tool.poe.tasks.release_publish]
 cmd = "semantic-release publish"
