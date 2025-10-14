@@ -147,4 +147,4 @@ def main() -> None:
     print("Two client options:")
     print("  - RustClient: Maximum performance (Rust HTTP + parsing)")
     print("  - AsyncClient: Easy async (Python HTTP + Rust parsing)")
-    print("See documentation at: https://github.com/yourusername/playfast")
+    print("See documentation at: https://github.com/mixL1nk/playfast")
