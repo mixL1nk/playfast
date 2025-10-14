@@ -220,7 +220,7 @@ exclude_lines = [
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = []
-build_command = "uv run python scripts/generate_changelog.py"
+build_command = "python scripts/generate_changelog.py"
 build_command_env = ["NEW_VERSION"]  # Pass version as environment variable
 # Keep 0.x.x versions, don't auto-jump to 1.0.0
 major_on_zero = false
