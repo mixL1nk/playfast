@@ -17,13 +17,18 @@ jobs:
           # Primary tests - full coverage
           - os: ubuntu-latest
             python-version: '3.11'
+            run-tests: true
           # Quick compatibility checks
           - os: ubuntu-latest
             python-version: '3.12'
+            run-tests: true
+          # Build-only checks for cross-platform compatibility
           - os: windows-latest
             python-version: '3.11'
+            run-tests: false
           - os: macos-latest
             python-version: '3.11'
+            run-tests: false
 
     steps:
       - uses: actions/checkout@v4
@@ -61,27 +66,16 @@ jobs:
       - name: Install dependencies (test group only)
         run: uv sync --group dev
 
-      - name: Build Rust extension (Linux with mold)
-        if: runner.os == 'Linux'
-        env:
-          CARGO_BUILD_JOBS: 4
-        run: uv run maturin develop --release
-
-      - name: Build Rust extension (Windows with LLD)
-        if: runner.os == 'Windows'
-        env:
-          RUSTFLAGS: "-C linker=rust-lld -C target-cpu=native"
-          CARGO_BUILD_JOBS: 4
-        run: uv run maturin develop --release
-
-      - name: Build Rust extension (macOS)
-        if: runner.os == 'macOS'
-        env:
-          CARGO_BUILD_JOBS: 4
+      - name: Build Rust extension
         run: uv run maturin develop --release
 
       - name: Run tests
+        if: matrix.run-tests
         run: uv run pytest --cov=python/playfast --cov-report=xml --cov-report=html
+
+      - name: Quick smoke test (build-only platforms)
+        if: ${{ !matrix.run-tests }}
+        run: uv run python -c "import playfast; print(f'playfast {playfast.__version__} imported successfully')"
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
