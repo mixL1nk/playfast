@@ -53,14 +53,14 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        target: [x64, arm64]
+        target: [x64]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-          architecture: ${{ matrix.target == 'arm64' && 'x64' || matrix.target }}
+          architecture: ${{ matrix.target }}
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
