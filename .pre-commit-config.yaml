@@ -59,6 +59,7 @@ repos:
         name: Update uv lockfile
         files: pyproject.toml
         args: [--project, python]
+        stages: [pre-commit, pre-push]  # Skip on semantic-release commits
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.5

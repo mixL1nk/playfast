@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [-encodedCommand] - 2025-10-14
+
+### 🐛 Bug Fixes
+
+- Exclude CHANGELOG from pre-commit hooks to prevent semantic-release conflicts (42ea823)
+
+### 📚 Documentation
+
+- Add changelog for v0.1.0 (385cb29)
+- Correct country/store counts (247 countries, 93 unique stores) (fbc7f70)
+
+### 🔧 Miscellaneous Tasks
+
+- Auto-sync CHANGELOG to docs via pre-commit hook (60e87a2)
+- Update GitHub username from placeholder to mixL1nk (a769e82)
+- Add GitHub Actions workflows for CI/CD and PyPI release (e7c054d)
+- Configure semantic-release and git-cliff for automated releases (ec27b2d)
+- Add Python script for CHANGELOG generation (5aa6a6e)
+
+### 🚀 Features
+
+- Auto-sync CHANGELOG to docs folder during generation (8cdaf28)
+
 ## [0.1.0] - 2025-10-14
 
 ### 🔧 Miscellaneous Tasks

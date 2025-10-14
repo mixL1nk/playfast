@@ -7,7 +7,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-if __name__ == "__main__":
+
+def main() -> None:
+    """Generate CHANGELOG.md and sync to docs folder."""
     version = sys.argv[1] if len(sys.argv) > 1 else "unreleased"
 
     # Set UTF-8 encoding for subprocess
@@ -34,3 +36,7 @@ if __name__ == "__main__":
     shutil.copy2(changelog_path, docs_path)
 
     print(f"Generated CHANGELOG.md and docs/changelog.md for v{version}")
+
+
+if __name__ == "__main__":
+    main()
