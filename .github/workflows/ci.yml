@@ -42,10 +42,23 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies
-        run: uv sync --all-extras
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+          cache-on-failure: true
+          shared-key: ${{ matrix.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install sccache
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      - name: Install dependencies (test group only)
+        run: uv sync --group dev
 
       - name: Build Rust extension
+        env:
+          RUSTC_WRAPPER: sccache
+          SCCACHE_GHA_ENABLED: "true"
         run: uv run maturin develop --release
 
       - name: Run tests
@@ -100,9 +113,12 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Install dependencies
-        run: uv sync --all-extras
+      - name: Install dependencies (dev group only)
+        run: uv sync --group dev --no-install-project
 
       - name: Check formatting
         run: uv run ruff format --check .

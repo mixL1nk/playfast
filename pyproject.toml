@@ -43,8 +43,6 @@ build-backend = "maturin"
 dev = [
     "git-cliff>=2.10.1",
     "maturin>=1.9.6",
-    "mkdocs-material>=9.6.21",
-    "mkdocstrings[python]>=0.28.0",
     "mypy>=1.18.2",
     "poethepoet>=0.37.0",
     "pre-commit>=4.3.0",
@@ -56,6 +54,11 @@ dev = [
     "rich>=14.2.0",
     "ruff>=0.14.0",
     "tomli>=2.3.0",
+]
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.6.21",
+    "mkdocstrings[python]>=0.28.0",
 ]
 profile = [
     "memory-profiler>=0.61.0",

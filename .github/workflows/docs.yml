@@ -51,9 +51,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install dependencies (docs only)
-        run: |
-          uv venv
-          uv pip install mkdocs mkdocs-material mkdocstrings mkdocstrings-python
+        run: uv sync --only-group docs --no-install-project
 
       - name: Build documentation
         run: |

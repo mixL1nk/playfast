@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.11"
 
 [[package]]
@@ -1105,7 +1105,7 @@ wheels = [
 
 [[package]]
 name = "playfast"
-version = "0.2.2"
+version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -1116,8 +1116,6 @@ dependencies = [
 dev = [
     { name = "git-cliff" },
     { name = "maturin" },
-    { name = "mkdocs-material" },
-    { name = "mkdocstrings", extra = ["python"] },
     { name = "mypy" },
     { name = "poethepoet" },
     { name = "pre-commit" },
@@ -1129,6 +1127,11 @@ dev = [
     { name = "rich" },
     { name = "ruff" },
     { name = "tomli" },
+]
+docs = [
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "mkdocstrings", extra = ["python"] },
 ]
 profile = [
     { name = "memory-profiler" },
@@ -1144,8 +1147,6 @@ requires-dist = [
 dev = [
     { name = "git-cliff", specifier = ">=2.10.1" },
     { name = "maturin", specifier = ">=1.9.6" },
-    { name = "mkdocs-material", specifier = ">=9.6.21" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.28.0" },
     { name = "mypy", specifier = ">=1.18.2" },
     { name = "poethepoet", specifier = ">=0.37.0" },
     { name = "pre-commit", specifier = ">=4.3.0" },
@@ -1157,6 +1158,11 @@ dev = [
     { name = "rich", specifier = ">=14.2.0" },
     { name = "ruff", specifier = ">=0.14.0" },
     { name = "tomli", specifier = ">=2.3.0" },
+]
+docs = [
+    { name = "mkdocs", specifier = ">=1.6.0" },
+    { name = "mkdocs-material", specifier = ">=9.6.21" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.28.0" },
 ]
 profile = [{ name = "memory-profiler", specifier = ">=0.61.0" }]
 
