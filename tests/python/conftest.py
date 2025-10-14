@@ -1,5 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
