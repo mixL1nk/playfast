@@ -288,9 +288,16 @@ cmd = "semantic-release version --no-push --no-tag --no-commit"
 env = { PYTHONUTF8 = "1" }
 
 [tool.poe.tasks.release]
-help = "Create a new release with semantic-release and generate changelog"
+help = "Create a new release (local only, no push)"
 sequence = [
   { cmd = "semantic-release version --no-push", env = { PYTHONUTF8 = "1", SKIP = "uv-lock" } },
+  { script = "scripts.generate_changelog:main" },
+]
+
+[tool.poe.tasks.release_with_push]
+help = "Create a new release and push to remote"
+sequence = [
+  { cmd = "semantic-release version", env = { PYTHONUTF8 = "1", SKIP = "uv-lock" } },
   { script = "scripts.generate_changelog:main" },
 ]
 
