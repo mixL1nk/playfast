@@ -39,13 +39,13 @@ def main() -> None:
         print("4. Formatters modified files, amending again...")
         run_command(["git", "add", "-A"])
         run_command(["git", "commit", "--amend", "--no-edit", "--no-verify"])
-        print("   ✓ Changes incorporated into release commit")
+        print("   OK Changes incorporated into release commit")
     else:
         print("4. No additional changes needed")
 
     # Get final commit info
     result = run_command(["git", "log", "-1", "--oneline"])
-    print(f"\n✓ Release finalized: {result.stdout.strip()}")
+    print(f"\nOK Release finalized: {result.stdout.strip()}")
 
     # Check if previous commit has a tag (semantic-release creates it on previous commit)
     result = run_command(
@@ -58,12 +58,12 @@ def main() -> None:
         run_command(["git", "tag", "-d", old_tag])
         # Create tag on current commit
         run_command(["git", "tag", old_tag])
-        print(f"   ✓ Tag '{old_tag}' moved to current commit")
+        print(f"   OK Tag '{old_tag}' moved to current commit")
 
         # Get final commit info
         result = run_command(["git", "log", "-1", "--oneline"])
-        print(f"\n✓ Release finalized: {result.stdout.strip()}")
-        print(f"✓ Tag: {old_tag}")
+        print(f"\nOK Release finalized: {result.stdout.strip()}")
+        print(f"OK Tag: {old_tag}")
         print("\nNext steps:")
         print("  git push origin main")
         print(f"  git push origin {old_tag}")
@@ -74,12 +74,12 @@ def main() -> None:
         )
         if result.returncode == 0:
             tag = result.stdout.strip()
-            print(f"\n✓ Tag already on HEAD: {tag}")
+            print(f"\nOK Tag already on HEAD: {tag}")
             print("\nNext steps:")
             print("  git push origin main")
             print(f"  git push origin {tag}")
         else:
-            print("\n⚠ Warning: No tag found")
+            print("\nWARNING: No tag found")
             print("This is unexpected - semantic-release should have created a tag")
 
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     try:
         main()
     except subprocess.CalledProcessError as e:
-        print(f"\n✗ Error: {e}", file=sys.stderr)
+        print(f"\nERROR: {e}", file=sys.stderr)
         if e.stdout:
             print(f"stdout: {e.stdout}", file=sys.stderr)
         if e.stderr:
