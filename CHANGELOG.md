@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ♻️ Refactor
 
-- Improve type hints and file handling in various scripts (7201493)
+- Improve type hints and file handling in various scripts (8c22924)
 
 ### ⚡ Performance
 
@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply mdformat and markdownlint fixes (b9209bc)
 - Migrate pre-commit config to fix deprecated stage names (9065ace)
 - Configure semantic-release commit author (310ed38)
+- Bump version to 0.5.0 to resolve tag conflict (d11ccc5)
 
 ### 🚀 Features
 
