@@ -49,6 +49,11 @@ jobs:
           cache-on-failure: true
           shared-key: ${{ matrix.os }}-rust-${{ hashFiles('**/Cargo.lock') }}
 
+      # Use mold linker for faster linking (50-70% speedup on Linux)
+      - name: Setup mold linker
+        if: runner.os == 'Linux'
+        uses: rui314/setup-mold@v1
+
       # Temporarily disabled due to GitHub Actions cache service issues
       # - name: Install sccache
       #   uses: mozilla-actions/sccache-action@v0.0.6
