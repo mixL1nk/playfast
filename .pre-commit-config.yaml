@@ -42,6 +42,14 @@ repos:
 
   - repo: local
     hooks:
+      - id: sync-changelog
+        name: Sync CHANGELOG to docs
+        entry: python -c "import shutil; shutil.copy('CHANGELOG.md', 'docs/changelog.md')"
+        language: system
+        pass_filenames: false
+        files: ^CHANGELOG\.md$
+        always_run: true
+
       - id: poe-check
         name: Run checks through Poe
         entry: uv run poe pre-commit-check

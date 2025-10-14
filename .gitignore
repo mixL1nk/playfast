@@ -33,3 +33,4 @@ benchmark_results
 
 # MkDocs build output
 site/
+docs/changelog.md  # Auto-generated from CHANGELOG.md
