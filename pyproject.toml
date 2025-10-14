@@ -221,13 +221,17 @@ exclude_lines = [
 version_toml = ["pyproject.toml:project.version"]
 version_variables = []
 build_command = "uv run python scripts/generate_changelog.py {version}"
-major_on_zero = false  # Keep 0.x.x versions, don't auto-jump to 1.0.0
-allow_zero_version = true  # Allow version to remain at 0.x.x
+# Keep 0.x.x versions, don't auto-jump to 1.0.0
+major_on_zero = false
+# Allow version to remain at 0.x.x
+allow_zero_version = true  
 tag_format = "v{version}"
 commit_message = "chore(release): {version}"
-commit_parser = "conventional"  # Use 'conventional' instead of deprecated 'angular'
+# Use 'conventional' instead of deprecated 'angular'
+commit_parser = "conventional"  
 changelog_file = "CHANGELOG.md"
-upload_to_vcs_release = false  # Disable GitHub release creation for now
+# Disable GitHub release creation for now
+upload_to_vcs_release = false 
 remote.type = "github"
 remote.token.env = "GH_TOKEN"
 # commit_author: Use default git config (local dev) or set in CI (e.g., github-actions[bot])
@@ -268,12 +272,23 @@ changelog_unreleased = "git cliff --unreleased"
 changelog_tag = "git cliff --tag ${tag} -o CHANGELOG.md"
 changelog_preview = "git cliff --unreleased --prepend CHANGELOG.md"
 
-# Version & Release automation (semantic-release)
-version_check = "semantic-release version --print"
-version_bump = "semantic-release version --no-push --no-tag --no-commit"
-release = "semantic-release version"
-release_publish = "semantic-release publish"
-
 # combine multiple tasks
 check = ["fmt", "lint", "pyright", "mypy", "test"]
 pre-commit-check = ["fmt", "lint", "pyright", "mypy", "test"]
+
+# Version & Release automation (semantic-release)
+[tool.poe.tasks.version_check]
+cmd = "semantic-release version --print"
+env = { PYTHONUTF8 = "1" }
+
+[tool.poe.tasks.version_bump]
+cmd = "semantic-release version --no-push --no-tag --no-commit"
+env = { PYTHONUTF8 = "1" }
+
+[tool.poe.tasks.release]
+cmd = "semantic-release version"
+env = { PYTHONUTF8 = "1" }
+
+[tool.poe.tasks.release_publish]
+cmd = "semantic-release publish"
+env = { PYTHONUTF8 = "1" }
