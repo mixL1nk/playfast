@@ -360,3 +360,7 @@ sequence = [
 [tool.poe.tasks.release_publish]
 cmd = "semantic-release publish"
 env = { PYTHONUTF8 = "1" }
+
+[tool.poe.tasks.safe_release]
+help = "Safe release with conflict prevention (recommended)"
+script = "scripts.safe_release:main"
