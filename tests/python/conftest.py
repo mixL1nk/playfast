@@ -1,5 +1,8 @@
 """Pytest configuration and shared fixtures."""
 
+import json
+from pathlib import Path
+
 import pytest
 
 from playfast import Category, Collection, RustClient
@@ -137,3 +140,278 @@ def all_collections() -> list[Collection]:
         Collection.TOP_NEW_FREE,
         Collection.TOP_NEW_PAID,
     ]
+
+
+# ==============================================================================
+# Doctest Support: Mock Client for Documentation Testing
+# ==============================================================================
+
+
+class MockRustClient:
+    """Mock RustClient that returns sample data without network calls.
+
+    This mock client is injected into doctest namespace to enable
+    documentation examples to run without actual network requests.
+    """
+
+    def __init__(self, timeout: int = 30, lang: str = "en") -> None:
+        """Initialize mock client with sample data from fixtures.
+
+        Args:
+            timeout: Request timeout (ignored in mock)
+            lang: Language code (ignored in mock)
+
+        """
+        self.timeout = timeout
+        self.lang = lang
+
+        fixtures_dir = Path(__file__).parent.parent / "fixtures"
+
+        # Load sample data
+        with fixtures_dir.open(fixtures_dir / "sample_app.json") as f:
+            app_data = json.load(f)
+            from pydantic import HttpUrl
+
+            self._sample_app = AppInfo(
+                **{
+                    **app_data,
+                    "icon": HttpUrl(app_data["icon"]),
+                    "screenshots": [HttpUrl(url) for url in app_data["screenshots"]],
+                    "permissions": [
+                        {"group": p["group"], "permissions": p["permissions"]}
+                        for p in app_data["permissions"]
+                    ],
+                }
+            )
+
+        with fixtures_dir.open(fixtures_dir / "sample_reviews.json") as f:
+            reviews_data = json.load(f)
+            from datetime import datetime
+
+            from pydantic import HttpUrl
+
+            self._sample_reviews = [
+                Review(
+                    **{
+                        **r,
+                        "user_image": HttpUrl(r["user_image"])
+                        if r["user_image"]
+                        else None,
+                        "created_at": datetime.fromtimestamp(r["created_at"]),
+                        "reply_at": datetime.fromtimestamp(r["reply_at"])
+                        if r["reply_at"]
+                        else None,
+                    }
+                )
+                for r in reviews_data
+            ]
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, *args):
+        """Context manager exit."""
+
+    def get_app(self, app_id: str, lang: str = "en", country: str = "us") -> AppInfo:
+        """Return sample app data."""
+        return self._sample_app
+
+    def get_reviews(
+        self,
+        app_id: str,
+        lang: str = "en",
+        country: str = "us",
+        sort: int = 1,
+        continuation_token: str | None = None,
+    ) -> tuple[list[Review], str | None]:
+        """Return sample reviews."""
+        return self._sample_reviews, None
+
+    def search(
+        self, query: str, lang: str = "en", country: str = "us", n_hits: int = 30
+    ) -> list[SearchResult]:
+        """Return sample search results."""
+        from pydantic import HttpUrl
+
+        return [
+            SearchResult(
+                app_id="com.spotify.music",
+                title="Spotify: Music and Podcasts",
+                developer="Spotify AB",
+                icon=HttpUrl("https://play-lh.googleusercontent.com/example.png"),
+                score=4.5,
+                price=0.0,
+                currency="USD",
+            )
+        ]
+
+    def list(
+        self,
+        collection: str,
+        category: str | None = None,
+        lang: str = "en",
+        country: str = "us",
+        num: int = 100,
+    ) -> list[SearchResult]:
+        """Return sample category/collection list."""
+        return self.search("", lang, country, num)
+
+    # Async methods
+    async def get_app_async(
+        self, app_id: str, lang: str | None = None, country: str = "us"
+    ) -> AppInfo:
+        """Return sample app data (async version)."""
+        return self._sample_app
+
+    async def get_apps_parallel(
+        self,
+        app_ids: list[str],
+        countries: list[str] | None = None,
+        lang: str | None = None,
+        max_workers: int = 50,
+    ) -> dict[str, list[AppInfo]]:
+        """Return sample apps grouped by country."""
+        countries_list = countries if countries is not None else ["us"]
+        return {country: [self._sample_app] for country in countries_list}
+
+
+class MockAsyncClient:
+    """Mock AsyncClient that returns sample data without network calls."""
+
+    def __init__(self, **kwargs) -> None:
+        """Initialize mock async client with sample data from fixtures."""
+        fixtures_dir = Path(__file__).parent.parent / "fixtures"
+
+        # Load sample data
+        with fixtures_dir.open("sample_app.json") as f:
+            app_data = json.load(f)
+            from pydantic import HttpUrl
+
+            self._sample_app = AppInfo(
+                **{
+                    **app_data,
+                    "icon": HttpUrl(app_data["icon"]),
+                    "screenshots": [HttpUrl(url) for url in app_data["screenshots"]],
+                    "permissions": [
+                        {"group": p["group"], "permissions": p["permissions"]}
+                        for p in app_data["permissions"]
+                    ],
+                }
+            )
+
+        with fixtures_dir.open("sample_reviews.json") as f:
+            reviews_data = json.load(f)
+            from datetime import datetime
+
+            from pydantic import HttpUrl
+
+            self._sample_reviews = [
+                Review(
+                    **{
+                        **r,
+                        "user_image": HttpUrl(r["user_image"])
+                        if r["user_image"]
+                        else None,
+                        "created_at": datetime.fromtimestamp(r["created_at"]),
+                        "reply_at": datetime.fromtimestamp(r["reply_at"])
+                        if r["reply_at"]
+                        else None,
+                    }
+                )
+                for r in reviews_data
+            ]
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, *args):
+        """Async context manager exit."""
+
+    async def get_app(
+        self, app_id: str, lang: str = "en", country: str = "us"
+    ) -> AppInfo:
+        """Return sample app data (async)."""
+        return self._sample_app
+
+    async def get_apps_parallel(
+        self,
+        app_ids: list[str],
+        countries: list[str] | None = None,
+        lang: str | None = None,
+    ) -> dict[str, list[AppInfo]]:
+        """Return sample apps grouped by country."""
+        countries_list = countries or ["us"]
+        return {
+            country: [self._sample_app for _ in app_ids] for country in countries_list
+        }
+
+    async def stream_reviews(
+        self,
+        app_id: str,
+        lang: str | None = None,
+        country: str = "us",
+        sort: int = 1,
+        max_pages: int | None = None,
+    ):
+        """Yield sample reviews (async generator)."""
+        # Yield reviews only once (simulating single page)
+        for review in self._sample_reviews:
+            yield review
+        # Don't continue - single page only
+
+    async def search(
+        self,
+        query: str,
+        lang: str | None = None,
+        country: str = "us",
+        n_hits: int = 30,
+    ) -> list[SearchResult]:
+        """Return sample search results."""
+        from pydantic import HttpUrl
+
+        return [
+            SearchResult(
+                app_id="com.spotify.music",
+                title="Spotify: Music and Podcasts",
+                developer="Spotify AB",
+                icon=HttpUrl("https://play-lh.googleusercontent.com/example.png"),
+                score=4.5,
+                price=0.0,
+                currency="USD",
+            )
+        ]
+
+    async def list(
+        self,
+        collection: str,
+        category: str | None = None,
+        lang: str | None = None,
+        country: str = "us",
+        num: int = 100,
+    ) -> list[SearchResult]:
+        """Return sample category/collection list."""
+        return await self.search("", lang, country, num)
+
+
+@pytest.fixture(autouse=True)
+def add_doctest_namespace(doctest_namespace: dict) -> None:
+    """Monkey-patch clients with mock versions for documentation testing.
+
+    This fixture replaces the RustClient and AsyncClient classes with mock
+    versions during doctest execution, allowing documentation examples to run
+    without network calls while keeping the docstrings showing real usage patterns.
+    """
+    # Monkey-patch: Replace clients with mocks
+    # This makes docstrings show real usage (RustClient(), AsyncClient()) but use mocks during tests
+    doctest_namespace["RustClient"] = MockRustClient
+    doctest_namespace["AsyncClient"] = MockAsyncClient
+
+    # Also provide direct access for convenience
+    doctest_namespace["mock_client"] = MockRustClient()
+
+    # Add helper modules
+    import asyncio
+
+    doctest_namespace["asyncio"] = asyncio

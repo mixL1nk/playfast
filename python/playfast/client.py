@@ -37,14 +37,22 @@ class AsyncClient:
     Rust-powered CPU-intensive parsing for maximum performance.
 
     Examples:
-        >>> async with AsyncClient() as client:
-        ...     app = await client.get_app("com.spotify.music")
-        ...     print(f"{app.title}: {app.score}⭐")
+        >>> import asyncio
+        >>> async def test_basic():
+        ...     async with AsyncClient() as client:
+        ...         app = await client.get_app("com.spotify.music")
+        ...         return app.title
+        >>> asyncio.run(test_basic())
+        'Spotify: Music and Podcasts'
 
-        >>> async with AsyncClient(max_concurrent=50) as client:
-        ...     results = await client.get_apps_parallel(
-        ...         ["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr", "jp"]
-        ...     )
+        >>> async def test_parallel():
+        ...     async with AsyncClient(max_concurrent=50) as client:
+        ...         results = await client.get_apps_parallel(
+        ...             ["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr"]
+        ...         )
+        ...         return len(results)
+        >>> asyncio.run(test_parallel())
+        2
 
     Args:
         max_concurrent: Maximum concurrent HTTP requests (default: 10)
@@ -168,8 +176,16 @@ class AsyncClient:
             NetworkError: If network request fails
 
         Examples:
-            >>> app = await client.get_app("com.spotify.music")
-            >>> print(f"{app.title}: {app.score}⭐")
+            >>> import asyncio
+            >>> async def test():
+            ...     async with AsyncClient() as client:
+            ...         app = await client.get_app("com.spotify.music")
+            ...         return app.title, app.score >= 4.0
+            >>> title, high_score = asyncio.run(test())
+            >>> title
+            'Spotify: Music and Podcasts'
+            >>> high_score
+            True
 
         """
         # Step 1: Async I/O - Download HTML
@@ -210,11 +226,18 @@ class AsyncClient:
             dict: Country code -> list of AppInfo
 
         Examples:
-            >>> results = await client.get_apps_parallel(
-            ...     ["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr", "jp"]
-            ... )
-            >>> for country, apps in results.items():
-            ...     print(f"{country}: {len(apps)} apps")
+            >>> import asyncio
+            >>> async def test():
+            ...     async with AsyncClient() as client:
+            ...         results = await client.get_apps_parallel(
+            ...             ["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr"]
+            ...         )
+            ...         return sorted(results.keys()), len(results["us"])
+            >>> countries, us_count = asyncio.run(test())
+            >>> countries
+            ['kr', 'us']
+            >>> us_count
+            2
 
         """
         countries = countries or ["us"]
@@ -273,10 +296,20 @@ class AsyncClient:
             Review: Individual review objects
 
         Examples:
-            >>> async for review in client.stream_reviews("com.spotify.music"):
-            ...     print(f"{review.user_name}: {review.score}⭐")
-            ...     if review.is_positive():
-            ...         print("  Positive review!")
+            >>> import asyncio
+            >>> async def test():
+            ...     async with AsyncClient() as client:
+            ...         reviews = []
+            ...         async for review in client.stream_reviews("com.spotify.music", max_pages=1):
+            ...             reviews.append(review)
+            ...             if len(reviews) >= 5:  # Limit for doctest
+            ...                 break
+            ...         return len(reviews), reviews[0].score >= 1
+            >>> count, valid_score = asyncio.run(test())
+            >>> count > 0
+            True
+            >>> valid_score
+            True
 
         """
         continuation_token: str | None = None
@@ -334,9 +367,16 @@ class AsyncClient:
             list[SearchResult]: List of search results
 
         Examples:
-            >>> results = await client.search("music streaming")
-            >>> for result in results:
-            ...     print(f"{result.title} by {result.developer}")
+            >>> import asyncio
+            >>> async def test():
+            ...     async with AsyncClient() as client:
+            ...         results = await client.search("music streaming")
+            ...         return len(results), results[0].title
+            >>> count, title = asyncio.run(test())
+            >>> count > 0
+            True
+            >>> title
+            'Spotify: Music and Podcasts'
 
         """
         url = f"{self.BASE_URL}/store/search"
@@ -388,11 +428,18 @@ class AsyncClient:
             list[SearchResult]: List of apps
 
         Examples:
-            >>> apps = await client.list(
-            ...     collection="topselling_free", category="GAME_ACTION", country="us", num=200
-            ... )
-            >>> for app in apps:
-            ...     print(f"{app.title} by {app.developer}")
+            >>> import asyncio
+            >>> async def test():
+            ...     async with AsyncClient() as client:
+            ...         apps = await client.list(
+            ...             collection="topselling_free", category="GAME_ACTION", country="us", num=50
+            ...         )
+            ...         return len(apps) > 0, isinstance(apps[0].title, str)
+            >>> has_apps, valid = asyncio.run(test())
+            >>> has_apps
+            True
+            >>> valid
+            True
 
         """
         if not self._session:

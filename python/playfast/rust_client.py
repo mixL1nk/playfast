@@ -37,10 +37,13 @@ class RustClient:
     Examples:
         >>> client = RustClient(timeout=30)
         >>> app = client.get_app("com.spotify.music")
-        >>> print(f"{app.title}: {app.score}⭐")
+        >>> app.title
+        'Spotify: Music and Podcasts'
+        >>> app.score >= 4.0
+        True
 
         >>> # Parallel batch processing
-        >>> with ThreadPoolExecutor(max_workers=50) as executor:
+        >>> with ThreadPoolExecutor(max_workers=50) as executor:  # doctest: +SKIP
         ...     futures = [executor.submit(client.get_app, app_id) for app_id in app_ids]
         ...     apps = [f.result() for f in futures]
 
@@ -86,8 +89,12 @@ class RustClient:
             Exception: If request or parsing fails
 
         Examples:
+            >>> client = RustClient()
             >>> app = client.get_app("com.spotify.music", country="kr")
-            >>> print(f"{app.title}: {app.score}⭐")
+            >>> app.title
+            'Spotify: Music and Podcasts'
+            >>> app.score >= 4.0
+            True
 
         """
         rust_app = fetch_and_parse_app(app_id, lang or self.lang, country, self.timeout)
@@ -114,9 +121,12 @@ class RustClient:
             tuple: (list of reviews, next page token)
 
         Examples:
+            >>> client = RustClient()
             >>> reviews, next_token = client.get_reviews("com.spotify.music")
-            >>> for review in reviews:
-            ...     print(f"{review.user_name}: {review.score}⭐")
+            >>> len(reviews) > 0
+            True
+            >>> reviews[0].score >= 1 and reviews[0].score <= 5
+            True
 
         """
         rust_reviews, next_token = fetch_and_parse_reviews(
@@ -146,8 +156,10 @@ class RustClient:
             list[Review]: All reviews
 
         Examples:
-            >>> all_reviews = client.get_all_reviews("com.spotify.music", max_pages=5)
-            >>> print(f"Got {len(all_reviews)} reviews")
+            >>> client = RustClient()  # doctest: +SKIP
+            >>> all_reviews = client.get_all_reviews("com.spotify.music", max_pages=5)  # doctest: +SKIP
+            >>> len(all_reviews) >= 0  # doctest: +SKIP
+            True
 
         """
         all_reviews: list[Review] = []
@@ -190,9 +202,12 @@ class RustClient:
             list[SearchResult]: List of search results
 
         Examples:
+            >>> client = RustClient()
             >>> results = client.search("music streaming")
-            >>> for result in results:
-            ...     print(f"{result.title} by {result.developer}")
+            >>> len(results) > 0
+            True
+            >>> results[0].title
+            'Spotify: Music and Podcasts'
 
         """
         rust_results = fetch_and_parse_search(
@@ -233,13 +248,13 @@ class RustClient:
 
         Examples:
             >>> from playfast.constants import Category, Collection
+            >>> client = RustClient()
             >>> # Note: May return empty results in current version
             >>> results = client.list(collection=Collection.TOP_FREE, category=Category.GAME_ACTION, num=50)
-            >>> if results:
-            ...     for result in results:
-            ...         print(f"{result.title} by {result.developer}")
-            ... else:
-            ...     print("No results - feature under development")
+            >>> isinstance(results, list)
+            True
+            >>> len(results) <= 50  # Should respect num parameter
+            True
 
         Note:
             For reliable app listing, use search() method instead, or wait for
@@ -281,8 +296,8 @@ class RustClient:
             >>> from playfast import RustClient
             >>> with RustClient() as client:
             ...     apps = client.get_category(category="GAME", collection="TOP_FREE", num=10)
-            ...     for app in apps:
-            ...         print(f"{app.title} - {app.score}⭐")
+            ...     len(apps) > 0  # Verify we got results
+            True
 
         """
         # Convert friendly collection names to API values
@@ -322,7 +337,11 @@ class RustClient:
         the performance benefits of Rust HTTP.
 
         Examples:
-            >>> app = await client.get_app_async("com.spotify.music")
+            >>> import asyncio
+            >>> client = RustClient()
+            >>> app = asyncio.run(client.get_app_async("com.spotify.music"))
+            >>> app.title
+            'Spotify: Music and Podcasts'
 
         """
         loop = asyncio.get_event_loop()
@@ -351,9 +370,17 @@ class RustClient:
             dict: Country code -> list of AppInfo
 
         Examples:
-            >>> results = await client.get_apps_parallel(
-            ...     ["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr", "jp"], max_workers=100
+            >>> import asyncio
+            >>> client = RustClient()
+            >>> results = asyncio.run(
+            ...     client.get_apps_parallel(
+            ...         ["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr"], max_workers=100
+            ...     )
             ... )
+            >>> "us" in results and "kr" in results
+            True
+            >>> len(results["us"]) > 0
+            True
 
         """
         countries_list: list[str] = countries if countries is not None else ["us"]
@@ -390,9 +417,10 @@ def quick_get_app(app_id: str, country: str = "us", timeout: int = 30) -> AppInf
     This is the fastest way to get a single app's information.
 
     Examples:
-        >>> from playfast.rust_client import quick_get_app
-        >>> app = quick_get_app("com.spotify.music")
-        >>> print(f"{app.title}: {app.score}⭐")
+        >>> from playfast import quick_get_app
+        >>> app = quick_get_app("com.spotify.music")  # doctest: +SKIP
+        >>> app.title  # doctest: +SKIP
+        'Spotify: Music and Podcasts'
 
     Args:
         app_id: App package ID

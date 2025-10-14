@@ -10,11 +10,11 @@ Two client options:
 2. AsyncClient - Python async HTTP + Rust parsing (easier to use)
 
 Quick Start (RustClient - Recommended for performance):
-    >>> from playfast import RustClient
+    >>> from playfast import RustClient  # doctest: +SKIP
     >>>
-    >>> client = RustClient()
-    >>> app = client.get_app("com.spotify.music")
-    >>> print(f"{app.title}: {app.score}⭐")
+    >>> client = RustClient()  # doctest: +SKIP
+    >>> app = client.get_app("com.spotify.music")  # doctest: +SKIP
+    >>> print(f"{app.title}: {app.score}⭐")  # doctest: +SKIP
 
 Quick Start (AsyncClient):
     >>> import asyncio
@@ -23,9 +23,13 @@ Quick Start (AsyncClient):
     >>> async def main():
     ...     async with AsyncClient() as client:
     ...         app = await client.get_app("com.spotify.music")
-    ...         print(f"{app.title}: {app.score}⭐")
+    ...         return app
     >>>
-    >>> asyncio.run(main())
+    >>> app = asyncio.run(main())
+    >>> app.title
+    'Spotify: Music and Podcasts'
+    >>> app.score >= 4.0
+    True
 """
 
 # Dynamic version loading from installed package metadata

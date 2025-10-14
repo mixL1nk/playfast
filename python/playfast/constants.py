@@ -772,8 +772,12 @@ def get_countries() -> list[Country]:
     Examples:
         >>> from playfast.constants import get_countries
         >>> countries = get_countries()
-        >>> for country in countries:
-        ...     print(f"{country.name} ({country.code}) - {country.currency}")
+        >>> len(countries)
+        247
+        >>> countries[0].code
+        'us'
+        >>> countries[0].name
+        'United States'
 
     """
     return COUNTRIES.copy()
@@ -817,9 +821,10 @@ def get_unique_countries() -> list[Country]:
         >>> unique_countries = get_unique_countries()
         >>> len(unique_countries)
         93
-        >>> # Scrape only unique regions instead of all 247 countries
-        >>> for country in unique_countries:
-        ...     app_data = client.get_app(app_id, country=country.code)
+        >>> # All returned countries should have code in UNIQUE_REGION_CODES
+        >>> from playfast.constants import UNIQUE_REGION_CODES
+        >>> all(c.code in UNIQUE_REGION_CODES for c in unique_countries)
+        True
 
     """
     return [c for c in COUNTRIES if c.code in UNIQUE_REGION_CODES]

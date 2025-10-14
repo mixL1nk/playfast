@@ -46,29 +46,72 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [dependency-groups]
-dev = [
-    "git-cliff>=2.10.1",
-    "maturin>=1.9.6",
-    "mypy>=1.18.2",
-    "poethepoet>=0.37.0",
-    "pre-commit>=4.3.0",
-    "pyright>=1.1.406",
+# ============================================================================
+# CI-specific groups (minimal dependencies for fast CI)
+# ============================================================================
+
+# CI Test job - 6 packages (was 16 in dev group)
+ci-test = [
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
-    "python-semantic-release>=10.4.1",
-    "rich>=14.2.0",
-    "ruff>=0.14.0",
-    "tomli>=2.3.0",
+    "pytest-xdist[psutil]>=3.6.1",
+    "maturin>=1.9.6",
 ]
+
+# CI Lint job - 2 packages (was 16 in dev group)
+ci-lint = [
+    "ruff>=0.14.0",
+    "pyright>=1.1.406",
+]
+
+# ============================================================================
+# Local development groups
+# ============================================================================
+
+# Release tools (local only, not used in CI)
+release = [
+    "python-semantic-release>=10.4.1",
+    "git-cliff>=2.10.1",
+]
+
+# Development convenience tools (local only)
+tools = [
+    "poethepoet>=0.37.0",
+    "pre-commit>=4.3.0",
+    "rich>=14.2.0",
+    "mypy>=1.18.2",
+]
+
+# Documentation build (already optimized with --only-group docs)
 docs = [
     "mkdocs>=1.6.0",
     "mkdocs-material>=9.6.21",
     "mkdocstrings[python]>=0.28.0",
 ]
+
+# Profiling tools (optional)
 profile = [
     "memory-profiler>=0.61.0",
 ]
+
+# ============================================================================
+# Combined group for local development
+# ============================================================================
+
+# Full development environment (includes all groups)
+dev = [
+    { include-group = "ci-test" },
+    { include-group = "ci-lint" },
+    { include-group = "release" },
+    { include-group = "tools" },
+]
+
+# Notes:
+# - CI uses only pyright for speed; local dev uses both pyright + mypy
+# - Removed tomli (Python 3.11+ has built-in tomllib)
+# - CI jobs now use --only-group ci-test or ci-lint for faster installs
+# - Local devs use 'dev' group for full environment
 
 [project.scripts]
 playfast = "playfast:main"
@@ -202,8 +245,8 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-addopts = "-q --cov=python/playfast --cov-report=html"
-testpaths = ["tests/python"]
+addopts = "-q --cov=python/playfast --cov-report=html --doctest-modules -n auto"
+testpaths = ["tests/python", "python/playfast"]
 doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE"]
 markers = [
     "integration: integration tests requiring network access",
@@ -276,6 +319,7 @@ fix_unsafe = "ruff check --fix --unsafe-fixes ."
 build_docs = "mkdocs build"
 serve_docs = "mkdocs serve"
 test = "pytest"
+test-seq = "pytest -n 0"
 build = "maturin build --release"
 dev = "maturin develop --release"
 clean = "cargo clean"

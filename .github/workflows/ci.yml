@@ -80,8 +80,8 @@ jobs:
       # - name: Install sccache
       #   uses: mozilla-actions/sccache-action@v0.0.6
 
-      - name: Install dependencies (test group only)
-        run: uv sync --group dev
+      - name: Install dependencies (CI test group only)
+        run: uv sync --only-group ci-test
 
       - name: Build Rust extension
         run: uv run maturin develop --release
@@ -147,8 +147,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Install dependencies (dev group only)
-        run: uv sync --group dev --no-install-project
+      - name: Install dependencies (CI lint group only)
+        run: uv sync --only-group ci-lint --no-install-project
 
       - name: Check formatting
         run: uv run ruff format --check .

@@ -41,10 +41,10 @@ def fetch_apps(
         List of AppInfo objects (one per app per country)
 
     Example:
-        >>> apps = fetch_apps(
+        >>> apps = fetch_apps(  # doctest: +SKIP
         ...     app_ids=["com.spotify.music", "com.netflix.mediaclient"], countries=["us", "kr"], lang="en"
         ... )
-        >>> print(f"Fetched {len(apps)} apps")
+        >>> print(f"Fetched {len(apps)} apps")  # doctest: +SKIP
 
     """
     requests = [(app_id, lang, country) for app_id in app_ids for country in countries]
@@ -72,11 +72,11 @@ def fetch_category_lists(
         List of result lists (one list per request, in same order as input)
 
     Example:
-        >>> results = fetch_category_lists(
+        >>> results = fetch_category_lists(  # doctest: +SKIP
         ...     countries=["us", "kr", "jp"], categories=["GAME_ACTION", "SOCIAL"], num_results=50
         ... )
-        >>> for result_list in results:
-        ...     print(f"Got {len(result_list)} apps")
+        >>> for result_list in results:  # doctest: +SKIP
+        ...     print(f"Got {len(result_list)} apps")  # doctest: +SKIP
 
     """
     requests = [
@@ -104,10 +104,10 @@ def search_apps(
         List of search result lists (one list per query per country)
 
     Example:
-        >>> results = search_apps(queries=["spotify", "netflix"], countries=["us", "kr"])
-        >>> for result_list in results:
-        ...     for app in result_list:
-        ...         print(app.title)
+        >>> results = search_apps(queries=["spotify", "netflix"], countries=["us", "kr"])  # doctest: +SKIP
+        >>> for result_list in results:  # doctest: +SKIP
+        ...     for app in result_list:  # doctest: +SKIP
+        ...         print(app.title)  # doctest: +SKIP
 
     """
     requests = [(query, lang, country) for query in queries for country in countries]
@@ -133,9 +133,9 @@ def fetch_reviews(
         List of (reviews, next_token) tuples
 
     Example:
-        >>> results = fetch_reviews(app_ids=["com.spotify.music"], countries=["us", "kr"])
-        >>> for reviews, token in results:
-        ...     print(f"Got {len(reviews)} reviews")
+        >>> results = fetch_reviews(app_ids=["com.spotify.music"], countries=["us", "kr"])  # doctest: +SKIP
+        >>> for reviews, token in results:  # doctest: +SKIP
+        ...     print(f"Got {len(reviews)} reviews")  # doctest: +SKIP
 
     """
     requests: list[tuple[str, str, str, int, str | None]] = [
@@ -177,11 +177,11 @@ def fetch_top_apps(
         Nested dict: {country: {category: [apps]}}
 
     Example:
-        >>> results = fetch_top_apps(
+        >>> results = fetch_top_apps(  # doctest: +SKIP
         ...     countries=["us", "kr"], categories=["GAME_ACTION", "SOCIAL"], num_results=50
         ... )
-        >>> us_games = results["us"]["GAME_ACTION"]
-        >>> print(f"US top games: {len(us_games)}")
+        >>> us_games = results["us"]["GAME_ACTION"]  # doctest: +SKIP
+        >>> print(f"US top games: {len(us_games)}")  # doctest: +SKIP
 
     """
     # Fetch all in one batch
@@ -222,9 +222,11 @@ def fetch_multi_country_apps(
         Dict mapping country code to AppInfo
 
     Example:
-        >>> apps = fetch_multi_country_apps("com.spotify.music", countries=["us", "kr", "jp", "de"])
-        >>> for country, app in apps.items():
-        ...     print(f"{country}: {app.score} stars")
+        >>> apps = fetch_multi_country_apps(
+        ...     "com.spotify.music", countries=["us", "kr", "jp", "de"]
+        ... )  # doctest: +SKIP
+        >>> for country, app in apps.items():  # doctest: +SKIP
+        ...     print(f"{country}: {app.score} stars")  # doctest: +SKIP
 
     """
     apps = fetch_apps(
