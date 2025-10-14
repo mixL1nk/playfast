@@ -179,7 +179,7 @@ apps = fetch_apps(
 1. **RustClient for CPU-bound**: True parallel execution with GIL release
 1. **AsyncClient for I/O-bound**: Natural async/await syntax
 1. **Adjust concurrency**: Balance between speed and rate limiting
-1. **Use unique regions**: 162 countries → 36 unique stores (4.5x faster)
+1. **Use unique regions**: 247 countries → 93 unique stores (2.7x faster)
 
 ## Need Help?
 

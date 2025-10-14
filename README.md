@@ -15,7 +15,7 @@ Playfast is a high-performance Google Play Store scraper built with **Rust + PyO
 - 🦀 **Pure Rust**: HTTP + parsing all in Rust for maximum performance
 - 🔒 **Type Safe**: Full Pydantic validation and type hints
 - 💾 **Memory Efficient**: Only 1.5 KB per app, linear scaling
-- 🌍 **Multi-Country**: 162 countries, 36 unique Play Stores
+- 🌍 **Multi-Country**: 247 countries, 93 unique Play Stores
 - 📦 **Batch API**: High-level functions for easy parallel processing
 
 ## 📊 Performance
@@ -138,18 +138,20 @@ Playfast optimizes global data collection:
 ```python
 from playfast import get_unique_countries, get_representative_country
 
-# Instead of 162 countries, use 36 unique stores (4.5x faster!)
-unique = get_unique_countries()  # 36 unique Play Stores
+# Instead of 247 countries, use 93 unique stores (2.7x faster!)
+unique = get_unique_countries()  # 93 unique Play Stores
 
 # Get representative for any country
-rep = get_representative_country("at")  # Austria → Germany store
+rep = get_representative_country(
+    "fi"
+)  # Finland → Vanuatu store (shared by 138 countries)
 ```
 
 ## 🔧 Development
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/playfast.git
+git clone https://github.com/mixL1nk/playfast.git
 cd playfast
 
 # Install dependencies
