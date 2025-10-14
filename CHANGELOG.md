@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🐛 Bug Fixes
 
 - Exclude CHANGELOG from pre-commit hooks to prevent semantic-release conflicts (42ea823)
+- Skip uv-lock hook during semantic-release commits (d94dfd5)
 
 ### 📚 Documentation
 
