@@ -1,6 +1,6 @@
 [project]
 name = "playfast"
-version = "0.2.1"
+version = "0.2.2"
 description = "Playfast - Lightning-Fast Google Play Store Scraper"
 readme = "README.md"
 authors = [
@@ -288,8 +288,11 @@ cmd = "semantic-release version --no-push --no-tag --no-commit"
 env = { PYTHONUTF8 = "1" }
 
 [tool.poe.tasks.release]
-cmd = "semantic-release version"
-env = { PYTHONUTF8 = "1", SKIP = "uv-lock" }
+help = "Create a new release with semantic-release and generate changelog"
+sequence = [
+  { cmd = "semantic-release version --no-push", env = { PYTHONUTF8 = "1", SKIP = "uv-lock" } },
+  { script = "scripts.generate_changelog:main" },
+]
 
 [tool.poe.tasks.release_publish]
 cmd = "semantic-release publish"
