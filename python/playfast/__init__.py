@@ -45,6 +45,8 @@ __author__ = "Taeyun Jang"
 __license__ = "MIT"
 
 # High-level API
+from playfast.apk import ApkAnalyzer
+
 # Low-level Rust API (advanced users)
 from playfast import core
 
@@ -108,6 +110,7 @@ __all__ = [
     "AsyncClient",
     "RustClient",
     "quick_get_app",
+    "ApkAnalyzer",
     # Models
     "AppInfo",
     "Review",

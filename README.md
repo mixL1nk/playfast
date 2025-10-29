@@ -14,6 +14,7 @@ Playfast is a high-performance Google Play Store scraper built with **Rust + PyO
 
 ## ✨ Features
 
+### Play Store Scraping
 - 🚀 **Blazingly Fast**: Batch API is 5-10x faster than sequential
 - ⚡ **True Parallel**: Rust core completely releases GIL
 - 🦀 **Pure Rust**: HTTP + parsing all in Rust for maximum performance
@@ -21,6 +22,13 @@ Playfast is a high-performance Google Play Store scraper built with **Rust + PyO
 - 💾 **Memory Efficient**: Only 1.5 KB per app, linear scaling
 - 🌍 **Multi-Country**: 247 countries, 93 unique Play Stores
 - 📦 **Batch API**: High-level functions for easy parallel processing
+
+### APK/DEX Analysis
+- 🔍 **Entry Point Analysis**: Identify Activities, Services, deeplink handlers
+- 📊 **Call Graph**: Method-to-method relationship tracking
+- 🌐 **WebView Flow**: Track paths from entry points to WebView APIs
+- 🔗 **Data Flow**: Intent → WebView.loadUrl() data tracking
+- 🛡️ **Security Analysis**: Deeplink vulnerability detection
 
 ## 📊 Performance
 
@@ -103,21 +111,47 @@ async def main():
 asyncio.run(main())
 ```
 
+### APK/DEX Analysis
+
+```python
+from playfast import core
+
+# Analyze WebView flows from entry points to WebView APIs
+flows = core.analyze_webview_flows_from_apk("app.apk", max_depth=10)
+
+for flow in flows:
+    print(f"{flow.entry_point} → {flow.webview_method}")
+    if flow.is_deeplink_handler:
+        print("  ⚠️  DEEPLINK HANDLER")
+```
+
 ## 📚 Examples
 
 See the [`examples/`](examples/) directory for more:
 
+### Play Store Scraping
 - [`01_async_client.py`](examples/01_async_client.py) - AsyncClient basics
 - [`02_rust_client.py`](examples/02_rust_client.py) - RustClient for max performance
 - [`03_batch_api.py`](examples/03_batch_api.py) - High-level batch API
 - [`04_countries_and_categories.py`](examples/04_countries_and_categories.py) - Country optimization
 
+### APK/DEX Analysis
+- [`apk/entry_point_demo.py`](examples/apk/entry_point_demo.py) - Entry point & deeplink detection
+- [`apk/call_graph_demo.py`](examples/apk/call_graph_demo.py) - Method call relationship analysis
+- [`apk/security_audit.py`](examples/apk/security_audit.py) - Security audit
+- [`webview/flow_demo.py`](examples/webview/flow_demo.py) - Complete WebView flow analysis
+- [`webview/high_level_api.py`](examples/webview/high_level_api.py) - High-level ApkAnalyzer API
+
 ## 📖 Documentation
 
+### Play Store Scraping
 - **[Getting Started](docs/getting_started.md)** - Installation and first steps
 - **[Quick Start](docs/quick_start.md)** - Practical examples
 - **[API Reference](docs/api/)** - Complete API documentation
 - **[Batch API Guide](docs/BATCH_API.md)** - Batch processing guide
+
+### APK/DEX Analysis
+- **[WebView Flow Analysis](docs/WEBVIEW_FLOW_ANALYSIS.md)** - Complete guide to WebView security analysis
 
 ## 🏗️ Architecture
 

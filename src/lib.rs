@@ -3,6 +3,10 @@ mod http;
 mod models;
 mod parser;
 
+// DEX and APK analysis modules
+mod apk;
+mod dex;
+
 use http::{PlayStoreClient, build_list_request_body as build_list_request_body_impl, build_reviews_request_body as build_reviews_request_body_impl};
 use models::{RustAppInfo, RustPermission, RustReview, RustSearchResult};
 use parser::{
@@ -16,6 +20,31 @@ use parser::{
 use pyo3::prelude::*;
 use once_cell::sync::Lazy;
 use futures::future::try_join_all;
+
+// Import DEX and APK types
+use apk::{ApkExtractor, RustManifestInfo, parse_manifest, IntentFilterData, ActivityIntentFilter, PyResourceResolver, PyResolvedResource, parse_resources_from_apk};
+use dex::models::{RustDexClass, RustDexMethod, RustDexField, RustReferencePool};
+use dex::filter::{ClassFilter, MethodFilter};
+use dex::container::DexContainer;
+use dex::bytecode::{RustInstruction, decode_bytecode, extract_constants, extract_method_calls};
+use dex::code_extractor::{extract_methods_bytecode, get_method_bytecode_from_apk};
+use dex::method_resolver::{MethodSignature, MethodResolverPy, create_method_resolver, resolve_method_from_apk};
+use dex::expression_builder::{ReconstructedExpression, ExpressionBuilderPy, create_expression_builder, reconstruct_expressions_from_apk};
+use dex::class_decompiler::{DecompiledClass, DecompiledMethod, decompile_class_from_apk};
+use dex::entry_point_analyzer::{EntryPoint, ComponentType, PyEntryPointAnalyzer, analyze_entry_points_from_apk};
+use dex::call_graph::{CallGraph, CallPath, MethodCall, PyCallGraphBuilder, build_call_graph_from_apk, build_call_graph_from_apk_parallel};
+use dex::data_flow_analyzer::{
+    Flow, DataFlow, DataFlowAnalyzer,
+    create_data_flow_analyzer,
+    find_flows_from_apk,
+    find_webview_flows_from_apk,
+    find_file_flows_from_apk,
+    find_network_flows_from_apk,
+    // Backward compatibility
+    WebViewFlow, WebViewFlowAnalyzer,
+    analyze_webview_flows_from_apk,
+    create_webview_analyzer_from_apk,
+};
 
 /// Global tokio runtime for async operations
 /// Multi-threaded runtime for better parallel performance
@@ -475,6 +504,215 @@ fn fetch_and_parse_reviews_batch(
     }).map_err(Into::into)
 }
 
+/// Extract APK information including DEX count and manifest presence
+///
+/// Args:
+///     apk_path (str): Path to the APK file
+///
+/// Returns:
+///     dict: Dictionary with keys: dex_count, has_manifest, has_resources, dex_files
+///
+/// Raises:
+///     Exception: If APK cannot be opened or is invalid
+#[pyfunction]
+fn extract_apk_info(apk_path: &str) -> PyResult<(usize, bool, bool, Vec<String>)> {
+    let extractor = ApkExtractor::new(apk_path)
+        .map_err(|e| error::PlayfastError::from(e))?;
+
+    let dex_files: Vec<String> = extractor.dex_entries()
+        .iter()
+        .map(|e| e.name.clone())
+        .collect();
+
+    Ok((
+        extractor.dex_count(),
+        extractor.has_manifest(),
+        extractor.has_resources(),
+        dex_files,
+    ))
+}
+
+/// Extract AndroidManifest.xml from APK (returns raw binary XML)
+///
+/// Args:
+///     apk_path (str): Path to the APK file
+///
+/// Returns:
+///     bytes: Raw AndroidManifest.xml binary data
+///
+/// Raises:
+///     Exception: If APK cannot be opened or manifest not found
+#[pyfunction]
+fn extract_manifest_raw(apk_path: &str) -> PyResult<Vec<u8>> {
+    let extractor = ApkExtractor::new(apk_path)
+        .map_err(|e| error::PlayfastError::from(e))?;
+    extractor.extract_manifest()
+        .map_err(|e| error::PlayfastError::from(e).into())
+}
+
+/// Parse AndroidManifest.xml from APK
+///
+/// Args:
+///     apk_path (str): Path to the APK file
+///
+/// Returns:
+///     RustManifestInfo: Parsed manifest information including package name,
+///                       version, permissions, activities, services, etc.
+///
+/// Raises:
+///     Exception: If APK cannot be opened, manifest not found, or parsing fails
+#[pyfunction]
+fn parse_manifest_from_apk(apk_path: &str) -> PyResult<RustManifestInfo> {
+    let extractor = ApkExtractor::new(apk_path)
+        .map_err(|e| error::PlayfastError::from(e))?;
+    let manifest_data = extractor.extract_manifest()
+        .map_err(|e| error::PlayfastError::from(e))?;
+    parse_manifest(&manifest_data)
+        .map_err(|e| error::PlayfastError::from(e).into())
+}
+
+/// Extract all classes from an APK file
+///
+/// Args:
+///     apk_path (str): Path to the APK file
+///     parallel (bool): Use parallel processing (default: True)
+///
+/// Returns:
+///     list[RustDexClass]: List of all classes from all DEX files
+///
+/// Raises:
+///     Exception: If APK cannot be opened or DEX parsing fails
+#[pyfunction]
+#[pyo3(signature = (apk_path, parallel=true))]
+fn extract_classes_from_apk(apk_path: &str, parallel: bool) -> PyResult<Vec<RustDexClass>> {
+    let extractor = ApkExtractor::new(apk_path)
+        .map_err(|e| error::PlayfastError::from(e))?;
+
+    let dex_entries = extractor.dex_entries().to_vec();
+    let container = dex::container::DexContainer::new(dex_entries);
+
+    let classes = if parallel {
+        container.extract_all_classes_parallel()
+    } else {
+        container.extract_all_classes()
+    };
+
+    classes.map_err(|e| error::PlayfastError::from(e).into())
+}
+
+/// Search for classes matching a filter in an APK
+///
+/// Args:
+///     apk_path (str): Path to the APK file
+///     filter (ClassFilter): Filter criteria for class search
+///     limit (int | None): Maximum number of results (default: None = no limit)
+///     parallel (bool): Use parallel processing (default: True)
+///
+/// Returns:
+///     list[RustDexClass]: List of matching classes
+///
+/// Raises:
+///     Exception: If APK cannot be opened or search fails
+#[pyfunction]
+#[pyo3(signature = (apk_path, filter, limit=None, parallel=true))]
+fn search_classes(
+    apk_path: &str,
+    filter: &ClassFilter,
+    limit: Option<usize>,
+    parallel: bool,
+) -> PyResult<Vec<RustDexClass>> {
+    let extractor = ApkExtractor::new(apk_path)
+        .map_err(|e| error::PlayfastError::from(e))?;
+
+    let dex_entries = extractor.dex_entries().to_vec();
+    let container = DexContainer::new(dex_entries);
+
+    // Extract all classes
+    let all_classes = if parallel {
+        container.extract_all_classes_parallel()
+    } else {
+        container.extract_all_classes()
+    };
+
+    let all_classes = all_classes.map_err(|e| error::PlayfastError::from(e))?;
+
+    // Filter classes
+    let mut results: Vec<RustDexClass> = all_classes
+        .into_iter()
+        .filter(|class| filter.matches(class))
+        .collect();
+
+    // Apply limit if specified
+    if let Some(max) = limit {
+        results.truncate(max);
+    }
+
+    Ok(results)
+}
+
+/// Search for methods matching a filter in specific classes from an APK
+///
+/// Args:
+///     apk_path (str): Path to the APK file
+///     class_filter (ClassFilter): Filter for selecting classes
+///     method_filter (MethodFilter): Filter for selecting methods
+///     limit (int | None): Maximum number of results (default: None = no limit)
+///     parallel (bool): Use parallel processing (default: True)
+///
+/// Returns:
+///     list[tuple[RustDexClass, RustDexMethod]]: List of (class, method) tuples
+///
+/// Raises:
+///     Exception: If APK cannot be opened or search fails
+#[pyfunction]
+#[pyo3(signature = (apk_path, class_filter, method_filter, limit=None, parallel=true))]
+fn search_methods(
+    apk_path: &str,
+    class_filter: &ClassFilter,
+    method_filter: &MethodFilter,
+    limit: Option<usize>,
+    parallel: bool,
+) -> PyResult<Vec<(RustDexClass, RustDexMethod)>> {
+    let extractor = ApkExtractor::new(apk_path)
+        .map_err(|e| error::PlayfastError::from(e))?;
+
+    let dex_entries = extractor.dex_entries().to_vec();
+    let container = DexContainer::new(dex_entries);
+
+    // Extract all classes
+    let all_classes = if parallel {
+        container.extract_all_classes_parallel()
+    } else {
+        container.extract_all_classes()
+    };
+
+    let all_classes = all_classes.map_err(|e| error::PlayfastError::from(e))?;
+
+    // Filter classes and methods
+    let mut results: Vec<(RustDexClass, RustDexMethod)> = Vec::new();
+
+    for class in all_classes {
+        if !class_filter.matches(&class) {
+            continue;
+        }
+
+        for method in &class.methods {
+            if method_filter.matches(method) {
+                results.push((class.clone(), method.clone()));
+
+                // Check limit
+                if let Some(max) = limit {
+                    if results.len() >= max {
+                        return Ok(results);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(results)
+}
+
 /// Playfast core module - High-performance Google Play scraping
 ///
 /// This module provides low-level Rust functions for advanced users.
@@ -512,11 +750,93 @@ fn core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(fetch_and_parse_search_batch, m)?)?;
     m.add_function(wrap_pyfunction!(fetch_and_parse_list_batch, m)?)?;
 
-    // Add model classes
+    // DEX and APK analysis functions
+    m.add_function(wrap_pyfunction!(extract_apk_info, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_manifest_raw, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_manifest_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_classes_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(search_classes, m)?)?;
+    m.add_function(wrap_pyfunction!(search_methods, m)?)?;
+
+    // Bytecode analysis functions
+    m.add_function(wrap_pyfunction!(decode_bytecode, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_constants, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_method_calls, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_methods_bytecode, m)?)?;
+    m.add_function(wrap_pyfunction!(get_method_bytecode_from_apk, m)?)?;
+
+    // Method resolution functions
+    m.add_function(wrap_pyfunction!(create_method_resolver, m)?)?;
+    m.add_function(wrap_pyfunction!(resolve_method_from_apk, m)?)?;
+
+    // Expression reconstruction functions (Phase 2)
+    m.add_function(wrap_pyfunction!(create_expression_builder, m)?)?;
+    m.add_function(wrap_pyfunction!(reconstruct_expressions_from_apk, m)?)?;
+
+    // Class-level decompilation
+    m.add_function(wrap_pyfunction!(decompile_class_from_apk, m)?)?;
+
+    // Resources.arsc parsing
+    m.add_function(wrap_pyfunction!(parse_resources_from_apk, m)?)?;
+
+    // Entry point analysis
+    m.add_function(wrap_pyfunction!(analyze_entry_points_from_apk, m)?)?;
+
+    // Call graph analysis
+    m.add_function(wrap_pyfunction!(build_call_graph_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(build_call_graph_from_apk_parallel, m)?)?;
+
+    // Data flow analysis (generic, WebView is a special case)
+    m.add_function(wrap_pyfunction!(create_data_flow_analyzer, m)?)?;
+    m.add_function(wrap_pyfunction!(find_flows_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(find_webview_flows_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(find_file_flows_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(find_network_flows_from_apk, m)?)?;
+
+    // Backward compatibility (deprecated)
+    m.add_function(wrap_pyfunction!(analyze_webview_flows_from_apk, m)?)?;
+    m.add_function(wrap_pyfunction!(create_webview_analyzer_from_apk, m)?)?;
+
+    // Add Play Store model classes
     m.add_class::<RustAppInfo>()?;
     m.add_class::<RustReview>()?;
     m.add_class::<RustSearchResult>()?;
     m.add_class::<RustPermission>()?;
+
+    // Add DEX/APK model classes
+    m.add_class::<RustDexClass>()?;
+    m.add_class::<RustDexMethod>()?;
+    m.add_class::<RustDexField>()?;
+    m.add_class::<RustReferencePool>()?;
+    m.add_class::<RustManifestInfo>()?;
+    m.add_class::<IntentFilterData>()?;
+    m.add_class::<ActivityIntentFilter>()?;
+    m.add_class::<RustInstruction>()?;
+    m.add_class::<MethodSignature>()?;
+    m.add_class::<MethodResolverPy>()?;
+    m.add_class::<ReconstructedExpression>()?;
+    m.add_class::<ExpressionBuilderPy>()?;
+    m.add_class::<DecompiledClass>()?;
+    m.add_class::<DecompiledMethod>()?;
+    m.add_class::<PyResourceResolver>()?;
+    m.add_class::<PyResolvedResource>()?;
+    m.add_class::<EntryPoint>()?;
+    m.add_class::<ComponentType>()?;
+    m.add_class::<PyEntryPointAnalyzer>()?;
+    m.add_class::<CallGraph>()?;
+    m.add_class::<CallPath>()?;
+    m.add_class::<MethodCall>()?;
+    m.add_class::<PyCallGraphBuilder>()?;
+    // New generic API
+    m.add_class::<Flow>()?;
+    m.add_class::<DataFlow>()?;
+    m.add_class::<DataFlowAnalyzer>()?;
+
+    // Backward compatibility (WebViewFlow/WebViewFlowAnalyzer are type aliases)
+
+    // Add DEX filter classes
+    m.add_class::<ClassFilter>()?;
+    m.add_class::<MethodFilter>()?;
 
     Ok(())
 }

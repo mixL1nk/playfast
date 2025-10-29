@@ -26,6 +26,15 @@ pub enum PlayfastError {
     #[error("Regex error: {0}")]
     RegexError(#[from] regex::Error),
 
+    #[error("DEX parse error: {0}")]
+    DexError(String),
+
+    #[error("APK error: {0}")]
+    ApkError(String),
+
+    #[error("Manifest parse error: {0}")]
+    ManifestError(String),
+
     #[error("Unknown error: {0}")]
     Other(String),
 }
@@ -34,6 +43,20 @@ pub enum PlayfastError {
 impl From<PlayfastError> for PyErr {
     fn from(err: PlayfastError) -> PyErr {
         PyException::new_err(err.to_string())
+    }
+}
+
+// Conversion from APK errors
+impl From<crate::apk::ApkError> for PlayfastError {
+    fn from(err: crate::apk::ApkError) -> Self {
+        PlayfastError::ApkError(err.to_string())
+    }
+}
+
+// Conversion from DEX errors
+impl From<crate::dex::DexError> for PlayfastError {
+    fn from(err: crate::dex::DexError) -> Self {
+        PlayfastError::DexError(err.to_string())
     }
 }
 
@@ -159,6 +182,9 @@ mod tests {
                 PlayfastError::JsonError(_) |
                 PlayfastError::HttpError(_) |
                 PlayfastError::RegexError(_) |
+                PlayfastError::DexError(_) |
+                PlayfastError::ApkError(_) |
+                PlayfastError::ManifestError(_) |
                 PlayfastError::Other(_) => {
                     // All error types are covered
                 }
