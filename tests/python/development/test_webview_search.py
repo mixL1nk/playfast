@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Test finding WebView usage in APK"""
+"""Test finding WebView usage in APK."""
 
 from pathlib import Path
+
 from playfast import ApkAnalyzer
+
 
 def main():
     apk_path = Path("../samples/com.instagram.android.apk")
@@ -25,7 +27,7 @@ def main():
     webview_methods = analyzer.find_methods(
         method_name="",  # All methods
         class_package="com.instagram",
-        limit=50
+        limit=50,
     )
 
     webview_usage_count = 0
@@ -43,7 +45,9 @@ def main():
             webview_usage_count += 1
             if webview_usage_count <= 10:
                 params = ", ".join(method.parameters) if method.parameters else ""
-                print(f"   - {cls.simple_name}.{method.name}({params}) -> {method.return_type}")
+                print(
+                    f"   - {cls.simple_name}.{method.name}({params}) -> {method.return_type}"
+                )
 
     print(f"\n   Total methods using WebView: {webview_usage_count}")
 
@@ -61,7 +65,7 @@ def main():
     # Group by top-level domain
     package_groups = {}
     for pkg in packages:
-        parts = pkg.split('.')
+        parts = pkg.split(".")
         if len(parts) >= 2:
             top_level = f"{parts[0]}.{parts[1]}"
         else:
@@ -71,9 +75,12 @@ def main():
             package_groups[top_level] = []
         package_groups[top_level].append(pkg)
 
-    print(f"\n   Package groups:")
-    for top_level, pkgs in sorted(package_groups.items(), key=lambda x: -len(x[1]))[:20]:
+    print("\n   Package groups:")
+    for top_level, pkgs in sorted(package_groups.items(), key=lambda x: -len(x[1]))[
+        :20
+    ]:
         print(f"   - {top_level:30s} ({len(pkgs):4d} packages)")
+
 
 if __name__ == "__main__":
     main()

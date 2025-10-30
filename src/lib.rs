@@ -7,6 +7,9 @@ mod parser;
 mod apk;
 mod dex;
 
+// Google Play APK download module
+mod download;
+
 use http::{PlayStoreClient, build_list_request_body as build_list_request_body_impl, build_reviews_request_body as build_reviews_request_body_impl};
 use models::{RustAppInfo, RustPermission, RustReview, RustSearchResult};
 use parser::{
@@ -40,8 +43,6 @@ use dex::data_flow_analyzer::{
     find_webview_flows_from_apk,
     find_file_flows_from_apk,
     find_network_flows_from_apk,
-    // Backward compatibility
-    WebViewFlow, WebViewFlowAnalyzer,
     analyze_webview_flows_from_apk,
     create_webview_analyzer_from_apk,
 };
@@ -837,6 +838,9 @@ fn core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add DEX filter classes
     m.add_class::<ClassFilter>()?;
     m.add_class::<MethodFilter>()?;
+
+    // Add Google Play download client
+    m.add_class::<download::GpapiClient>()?;
 
     Ok(())
 }

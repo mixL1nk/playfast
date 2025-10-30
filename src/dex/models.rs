@@ -56,7 +56,7 @@ impl RustReferencePool {
     }
 
     /// Convert to Python dictionary
-    pub fn to_dict(&self, py: Python) -> PyResult<PyObject> {
+    pub fn to_dict(&self, py: Python) -> PyResult<Py<PyAny>> {
         let dict = pyo3::types::PyDict::new(py);
         dict.set_item("strings", self.strings.clone())?;
         dict.set_item("types", self.types.clone())?;
@@ -134,7 +134,7 @@ impl RustDexField {
     }
 
     /// Convert to Python dictionary
-    pub fn to_dict(&self, py: Python) -> PyResult<PyObject> {
+    pub fn to_dict(&self, py: Python) -> PyResult<Py<PyAny>> {
         let dict = pyo3::types::PyDict::new(py);
         dict.set_item("name", &self.name)?;
         dict.set_item("field_type", &self.field_type)?;
@@ -233,7 +233,7 @@ impl RustDexMethod {
     }
 
     /// Convert to Python dictionary
-    pub fn to_dict(&self, py: Python) -> PyResult<PyObject> {
+    pub fn to_dict(&self, py: Python) -> PyResult<Py<PyAny>> {
         let dict = pyo3::types::PyDict::new(py);
         dict.set_item("name", &self.name)?;
         dict.set_item("parameters", &self.parameters)?;
@@ -336,7 +336,7 @@ impl RustDexClass {
     }
 
     /// Convert to Python dictionary
-    pub fn to_dict(&self, py: Python) -> PyResult<PyObject> {
+    pub fn to_dict(&self, py: Python) -> PyResult<Py<PyAny>> {
         let dict = pyo3::types::PyDict::new(py);
         dict.set_item("class_name", &self.class_name)?;
         dict.set_item("package_name", &self.package_name)?;

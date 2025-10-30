@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from typing import Any
+
 # ============================================================================
 # Google Play Store Types
 # ============================================================================
@@ -124,66 +127,82 @@ def fetch_and_parse_reviews_batch(
 # ============================================================================
 
 class RustDexClass:
-    """DEX class information"""
     class_name: str
+    package_name: str
+    simple_name: str
     access_flags: int
     superclass: str | None
     interfaces: list[str]
     source_file: str | None
     methods: list[RustDexMethod]
     fields: list[RustDexField]
+    method_count: int
+    field_count: int
+    references: RustReferencePool
+    is_public: bool
+    is_final: bool
+    is_abstract: bool
+    is_interface: bool
+    is_enum: bool
+    def to_dict(self) -> dict[str, Any]: ...
 
 class RustDexMethod:
-    """DEX method information"""
-    class_name: str
-    method_name: str
-    descriptor: str
+    declaring_class: str
+    name: str
+    signature: str
+    parameters: list[str]
+    return_type: str
     access_flags: int
-    code_off: int
+    references: RustReferencePool
+    is_public: bool
+    is_private: bool
+    is_protected: bool
+    is_static: bool
+    is_final: bool
+    is_constructor: bool
+    is_static_initializer: bool
+    def to_dict(self) -> dict[str, Any]: ...
 
 class RustDexField:
-    """DEX field information"""
     class_name: str
     field_name: str
     type_descriptor: str
     access_flags: int
 
 class RustReferencePool:
-    """Reference pool for DEX file"""
     def __len__(self) -> int: ...
 
 class RustManifestInfo:
-    """Android manifest information"""
-    package: str
+    package_name: str
     version_code: str | None
     version_name: str | None
     min_sdk_version: int | None
     target_sdk_version: int | None
+    application_label: str | None
     permissions: list[str]
     activities: list[str]
     services: list[str]
     receivers: list[str]
     providers: list[str]
+    intent_filters: list[Any]
+    def get_deeplinks(self) -> list[Any]: ...
+    def to_dict(self) -> dict[str, Any]: ...
 
 class IntentFilterData:
-    """Intent filter data"""
     actions: list[str]
     categories: list[str]
     schemes: list[str]
     hosts: list[str]
 
 class ActivityIntentFilter:
-    """Activity with intent filters"""
     activity: str
     filters: list[IntentFilterData]
 
 class RustInstruction:
-    """DEX bytecode instruction"""
     opcode: str
     operands: list[int]
 
 class MethodSignature:
-    """Method signature for resolution"""
     class_name: str
     method_name: str
     descriptor: str
@@ -193,14 +212,12 @@ class MethodSignature:
 # ============================================================================
 
 class ComponentType:
-    """Android component type enum"""
     Activity: str
     Service: str
     BroadcastReceiver: str
     ContentProvider: str
 
 class EntryPoint:
-    """Android entry point (Activity, Service, etc.)"""
     class_name: str
     component_type: str
     lifecycle_methods: list[str]
@@ -209,83 +226,47 @@ class EntryPoint:
     is_deeplink_handler: bool
 
 class PyEntryPointAnalyzer:
-    """Entry point analyzer"""
-    def analyze(self) -> list[EntryPoint]:
-        """Analyze all entry points"""
-        ...
+    def analyze(self) -> list[EntryPoint]: ...
+    def get_deeplink_handlers(self) -> list[EntryPoint]: ...
+    def get_stats(self) -> dict[str, int]: ...
 
-    def get_deeplink_handlers(self) -> list[EntryPoint]:
-        """Get only deeplink handler entry points"""
-        ...
-
-    def get_stats(self) -> dict[str, int]:
-        """Get analysis statistics"""
-        ...
-
-def analyze_entry_points_from_apk(apk_path: str) -> PyEntryPointAnalyzer:
-    """Create entry point analyzer from APK"""
-    ...
+def analyze_entry_points_from_apk(apk_path: str) -> PyEntryPointAnalyzer: ...
 
 # ============================================================================
 # Call Graph Analysis
 # ============================================================================
 
 class MethodCall:
-    """A method call in the call graph"""
     caller: str
     callee: str
     call_sites: int
 
 class CallPath:
-    """A path through the call graph"""
     methods: list[str]
     length: int
 
 class CallGraph:
-    """Call graph for an APK"""
-    def find_methods_matching(self, pattern: str) -> list[str]:
-        """Find methods matching a pattern"""
-        ...
-
+    def find_methods_matching(self, pattern: str) -> list[str]: ...
     def find_paths(
-        self,
-        start_methods: list[str],
-        target_methods: list[str],
-        max_depth: int
-    ) -> list[CallPath]:
-        """Find paths from start to target methods"""
-        ...
-
-    def get_stats(self) -> dict[str, int]:
-        """Get call graph statistics"""
-        ...
+        self, start_methods: list[str], target_methods: list[str], max_depth: int
+    ) -> list[CallPath]: ...
+    def get_stats(self) -> dict[str, int]: ...
 
 class PyCallGraphBuilder:
-    """Call graph builder"""
-    def build(self) -> CallGraph:
-        """Build the call graph"""
-        ...
+    def build(self) -> CallGraph: ...
 
 def build_call_graph_from_apk(
-    apk_path: str,
-    package_filter: str | None = None
-) -> CallGraph:
-    """Build call graph from APK (single-threaded)"""
-    ...
-
+    apk_path: str, package_filter: str | None = None
+) -> CallGraph: ...
 def build_call_graph_from_apk_parallel(
-    apk_path: str,
-    package_prefixes: list[str] | None = None
-) -> CallGraph:
-    """Build call graph from APK (parallel)"""
-    ...
+    apk_path: str, package_prefixes: list[str] | None = None
+) -> CallGraph: ...
 
 # ============================================================================
 # Data Flow Analysis (New Generic API)
 # ============================================================================
 
 class Flow:
-    """Data flow from entry point to sink method"""
     entry_point: str
     component_type: str
     sink_method: str
@@ -294,79 +275,31 @@ class Flow:
     min_path_length: int
     path_count: int
 
-    def get_shortest_path(self) -> CallPath | None:
-        """Get the shortest path"""
-        ...
-
-    def get_lifecycle_methods(self) -> list[str]:
-        """Get all lifecycle methods involved"""
-        ...
+    def get_shortest_path(self) -> CallPath | None: ...
+    def get_lifecycle_methods(self) -> list[str]: ...
 
 class DataFlow:
-    """Data flow from source to sink with confidence"""
     source: str
     sink: str
     flow_path: list[str]
     confidence: float
 
 class DataFlowAnalyzer:
-    """Generic data flow analyzer"""
     def find_flows_to(
-        self,
-        sink_patterns: list[str],
-        max_depth: int = 10
-    ) -> list[Flow]:
-        """Find flows to sinks matching patterns"""
-        ...
+        self, sink_patterns: list[str], max_depth: int = 10
+    ) -> list[Flow]: ...
+    def find_webview_flows(self, max_depth: int = 10) -> list[Flow]: ...
+    def find_file_flows(self, max_depth: int = 10) -> list[Flow]: ...
+    def find_network_flows(self, max_depth: int = 10) -> list[Flow]: ...
+    def find_sql_flows(self, max_depth: int = 10) -> list[Flow]: ...
 
-    def find_webview_flows(self, max_depth: int = 10) -> list[Flow]:
-        """Find flows to WebView methods"""
-        ...
-
-    def find_file_flows(self, max_depth: int = 10) -> list[Flow]:
-        """Find flows to file I/O methods"""
-        ...
-
-    def find_network_flows(self, max_depth: int = 10) -> list[Flow]:
-        """Find flows to network methods"""
-        ...
-
-    def find_sql_flows(self, max_depth: int = 10) -> list[Flow]:
-        """Find flows to SQL methods"""
-        ...
-
-def create_data_flow_analyzer(apk_path: str) -> DataFlowAnalyzer:
-    """Create data flow analyzer from APK (optimized with entry point filtering)"""
-    ...
-
+def create_data_flow_analyzer(apk_path: str) -> DataFlowAnalyzer: ...
 def find_flows_from_apk(
-    apk_path: str,
-    sink_patterns: list[str],
-    max_depth: int = 10
-) -> list[Flow]:
-    """Find flows to custom sink patterns"""
-    ...
-
-def find_webview_flows_from_apk(
-    apk_path: str,
-    max_depth: int = 10
-) -> list[Flow]:
-    """Find WebView flows (optimized)"""
-    ...
-
-def find_file_flows_from_apk(
-    apk_path: str,
-    max_depth: int = 10
-) -> list[Flow]:
-    """Find file I/O flows (optimized)"""
-    ...
-
-def find_network_flows_from_apk(
-    apk_path: str,
-    max_depth: int = 10
-) -> list[Flow]:
-    """Find network flows (optimized)"""
-    ...
+    apk_path: str, sink_patterns: list[str], max_depth: int = 10
+) -> list[Flow]: ...
+def find_webview_flows_from_apk(apk_path: str, max_depth: int = 10) -> list[Flow]: ...
+def find_file_flows_from_apk(apk_path: str, max_depth: int = 10) -> list[Flow]: ...
+def find_network_flows_from_apk(apk_path: str, max_depth: int = 10) -> list[Flow]: ...
 
 # ============================================================================
 # Backward Compatibility (Deprecated - use DataFlowAnalyzer instead)
@@ -376,164 +309,88 @@ def find_network_flows_from_apk(
 WebViewFlow = Flow
 WebViewFlowAnalyzer = DataFlowAnalyzer
 
-def analyze_webview_flows_from_apk(
-    apk_path: str,
-    max_depth: int = 5
-) -> list[Flow]:
-    """Deprecated: Use find_webview_flows_from_apk instead"""
-    ...
-
-def create_webview_analyzer_from_apk(apk_path: str) -> DataFlowAnalyzer:
-    """Deprecated: Use create_data_flow_analyzer instead"""
-    ...
+def analyze_webview_flows_from_apk(apk_path: str, max_depth: int = 5) -> list[Flow]: ...
+def create_webview_analyzer_from_apk(apk_path: str) -> DataFlowAnalyzer: ...
 
 # ============================================================================
 # APK Extraction Functions
 # ============================================================================
 
-def extract_apk_info(apk_path: str) -> tuple[int, bool, bool, list[str]]:
-    """Extract basic APK info (size, signed, multidex, dex_files)"""
-    ...
-
-def extract_manifest_raw(apk_path: str) -> bytes:
-    """Extract raw AndroidManifest.xml"""
-    ...
-
-def parse_manifest_from_apk(apk_path: str) -> RustManifestInfo:
-    """Parse AndroidManifest.xml from APK"""
-    ...
-
+def extract_apk_info(apk_path: str) -> tuple[int, bool, bool, list[str]]: ...
+def extract_manifest_raw(apk_path: str) -> bytes: ...
+def parse_manifest_from_apk(apk_path: str) -> RustManifestInfo: ...
 def extract_classes_from_apk(
-    apk_path: str,
-    parallel: bool = True
-) -> list[RustDexClass]:
-    """Extract all classes from APK"""
-    ...
-
+    apk_path: str, parallel: bool = True
+) -> list[RustDexClass]: ...
 def search_classes(
     apk_path: str,
-    name: str | None = None,
-    package: str | None = None,
-    extends: str | None = None,
-    implements: str | None = None,
-    parallel: bool = True
-) -> list[RustDexClass]:
-    """Search for classes matching criteria"""
-    ...
-
+    filter: ClassFilter,
+    limit: int | None = None,
+    parallel: bool = True,
+) -> list[RustDexClass]: ...
 def search_methods(
     apk_path: str,
-    class_name: str | None = None,
-    method_name: str | None = None,
-    descriptor: str | None = None,
-    access_flags: int | None = None,
-    parallel: bool = True
-) -> list[RustDexMethod]:
-    """Search for methods matching criteria"""
-    ...
+    class_filter: ClassFilter,
+    method_filter: MethodFilter,
+    limit: int | None = None,
+    parallel: bool = True,
+) -> list[RustDexMethod]: ...
 
 # ============================================================================
 # Bytecode Analysis Functions
 # ============================================================================
 
-def decode_bytecode(bytecode: bytes) -> list[RustInstruction]:
-    """Decode DEX bytecode to instructions"""
-    ...
-
-def extract_constants(bytecode: bytes) -> list[str]:
-    """Extract string constants from bytecode"""
-    ...
-
-def extract_method_calls(bytecode: bytes) -> list[str]:
-    """Extract method calls from bytecode"""
-    ...
-
-def extract_methods_bytecode(
-    classes: list[RustDexClass]
-) -> dict[str, bytes]:
-    """Extract bytecode for all methods"""
-    ...
-
+def decode_bytecode(bytecode: bytes) -> list[RustInstruction]: ...
+def extract_constants(bytecode: bytes) -> list[str]: ...
+def extract_method_calls(bytecode: bytes) -> list[str]: ...
+def extract_methods_bytecode(classes: list[RustDexClass]) -> dict[str, bytes]: ...
 def get_method_bytecode_from_apk(
-    apk_path: str,
-    class_name: str,
-    method_name: str
-) -> bytes | None:
-    """Get bytecode for a specific method"""
-    ...
+    apk_path: str, class_name: str, method_name: str
+) -> bytes | None: ...
 
 # ============================================================================
 # Method Resolution Functions
 # ============================================================================
 
 class MethodResolverPy:
-    """Method resolver for virtual/interface calls"""
     def resolve_method(
-        self,
-        class_name: str,
-        method_name: str,
-        descriptor: str
-    ) -> str | None:
-        """Resolve method to actual implementation"""
-        ...
+        self, class_name: str, method_name: str, descriptor: str
+    ) -> str | None: ...
 
-def create_method_resolver(apk_path: str) -> MethodResolverPy:
-    """Create method resolver from APK"""
-    ...
-
+def create_method_resolver(apk_path: str) -> MethodResolverPy: ...
 def resolve_method_from_apk(
-    apk_path: str,
-    class_name: str,
-    method_name: str,
-    descriptor: str
-) -> str | None:
-    """Resolve a single method"""
-    ...
+    apk_path: str, class_name: str, method_name: str, descriptor: str
+) -> str | None: ...
 
 # ============================================================================
 # Expression Reconstruction Functions
 # ============================================================================
 
 class ReconstructedExpression:
-    """Reconstructed high-level expression"""
     method: str
     expressions: list[str]
 
 class ExpressionBuilderPy:
-    """Expression builder"""
     def reconstruct_expressions(
-        self,
-        class_name: str,
-        method_name: str
-    ) -> ReconstructedExpression | None:
-        """Reconstruct expressions for a method"""
-        ...
+        self, class_name: str, method_name: str
+    ) -> ReconstructedExpression | None: ...
 
-def create_expression_builder(apk_path: str) -> ExpressionBuilderPy:
-    """Create expression builder from APK"""
-    ...
-
+def create_expression_builder(apk_path: str) -> ExpressionBuilderPy: ...
 def reconstruct_expressions_from_apk(
-    apk_path: str,
-    class_name: str,
-    method_name: str
-) -> ReconstructedExpression | None:
-    """Reconstruct expressions for a specific method"""
-    ...
+    apk_path: str, class_name: str, method_name: str
+) -> ReconstructedExpression | None: ...
 
 # ============================================================================
 # Class Decompilation Functions
 # ============================================================================
 
 class DecompiledMethod:
-    """Decompiled method"""
     name: str
     descriptor: str
     access_flags: int
     code: str
 
 class DecompiledClass:
-    """Decompiled class"""
     class_name: str
     access_flags: int
     superclass: str | None
@@ -542,57 +399,75 @@ class DecompiledClass:
     methods: list[DecompiledMethod]
 
 def decompile_class_from_apk(
-    apk_path: str,
-    class_name: str
-) -> DecompiledClass | None:
-    """Decompile a class to pseudo-Java code"""
-    ...
+    apk_path: str, class_name: str
+) -> DecompiledClass | None: ...
 
 # ============================================================================
 # Resources Functions
 # ============================================================================
 
 class PyResolvedResource:
-    """Resolved resource"""
     resource_id: int
     resource_type: str
     resource_name: str
     value: str
 
 class PyResourceResolver:
-    """Resource resolver"""
-    def resolve_resource(self, resource_id: int) -> PyResolvedResource | None:
-        """Resolve resource ID to value"""
-        ...
+    def resolve_resource(self, resource_id: int) -> PyResolvedResource | None: ...
+    def get_string(self, resource_id: int) -> str | None: ...
 
-    def get_string(self, resource_id: int) -> str | None:
-        """Get string resource"""
-        ...
-
-def parse_resources_from_apk(apk_path: str) -> PyResourceResolver:
-    """Parse resources.arsc from APK"""
-    ...
+def parse_resources_from_apk(apk_path: str) -> PyResourceResolver: ...
 
 # ============================================================================
 # DEX Filter Classes
 # ============================================================================
 
 class ClassFilter:
-    """Filter for DEX classes"""
     def __init__(
         self,
-        name: str | None = None,
-        package: str | None = None,
-        extends: str | None = None,
-        implements: str | None = None
-    ): ...
+        packages: list[str] | None = None,
+        exclude_packages: list[str] | None = None,
+        class_name: str | None = None,
+        modifiers: int | None = None,
+    ) -> None: ...
 
 class MethodFilter:
-    """Filter for DEX methods"""
     def __init__(
         self,
-        class_name: str | None = None,
         method_name: str | None = None,
-        descriptor: str | None = None,
-        access_flags: int | None = None
-    ): ...
+        param_count: int | None = None,
+        param_types: list[str] | None = None,
+        return_type: str | None = None,
+        modifiers: int | None = None,
+    ) -> None: ...
+
+# ============================================================================
+# Google Play APK Download (Low-level API)
+# ============================================================================
+
+class GpapiClient:
+    email: str
+    """Google account email address"""
+
+    def __init__(
+        self,
+        email: str,
+        oauth_token: str | None = None,
+        aas_token: str | None = None,
+        device: str = "px_9a",
+        locale: str = "en_US",
+        timezone: str = "America/New_York",
+    ) -> None: ...
+    def login(self) -> None: ...
+    def get_aas_token(self) -> str: ...
+    def save_credentials(self, path: str) -> None: ...
+    @staticmethod
+    def from_credentials(path: str) -> GpapiClient: ...
+    def download_apk(
+        self,
+        package_id: str,
+        dest_path: str,
+        version_code: int | None = None,
+        progress_callback: Callable[[int, int], None] | None = None,
+    ) -> str: ...
+    def get_package_details(self, package_id: str) -> str: ...

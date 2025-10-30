@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Test Class-Level Decompilation"""
+"""Test Class-Level Decompilation."""
 
 from pathlib import Path
+
 from playfast import core
 
-def test_class_decompilation(apk_path: Path):
-    """Test decompiling entire classes"""
 
+def test_class_decompilation(apk_path: Path):
+    """Test decompiling entire classes."""
     print("=" * 70)
     print("🔍 Class-Level Decompilation Test")
     print("=" * 70)
@@ -45,7 +46,9 @@ def test_class_decompilation(apk_path: Path):
             print(f"🔒 Security-Relevant Methods ({len(security_methods)}):")
             for method in security_methods:
                 print(f"\n   📍 {method.name}()")
-                print(f"      Access: {'public' if method.is_public else 'private' if method.is_private else 'protected'}")
+                print(
+                    f"      Access: {'public' if method.is_public else 'private' if method.is_private else 'protected'}"
+                )
                 print(f"      Static: {method.is_static}")
                 print(f"      Signature: {method.signature}")
                 print(f"      Bytecode size: {method.bytecode_size} words")
@@ -77,6 +80,7 @@ def test_class_decompilation(apk_path: Path):
     except Exception as e:
         print(f"❌ Failed to decompile class: {e}")
         import traceback
+
         traceback.print_exc()
     print()
 
@@ -87,8 +91,7 @@ def test_class_decompilation(apk_path: Path):
 
     try:
         class_info = core.decompile_class_from_apk(
-            str(apk_path),
-            "co.adison.offerwall.ui.HelpWebViewActivity"
+            str(apk_path), "co.adison.offerwall.ui.HelpWebViewActivity"
         )
 
         print(f"✅ Successfully decompiled: {class_info.class_name}")
@@ -113,7 +116,7 @@ def test_class_decompilation(apk_path: Path):
         # Show detailed security analysis
         security_methods = class_info.get_security_methods()
         if security_methods:
-            print(f"🎯 Security Analysis:")
+            print("🎯 Security Analysis:")
             print(f"   Found {len(security_methods)} security-relevant methods")
             for method in security_methods:
                 print(f"\n   Method: {method.signature}")
@@ -140,18 +143,20 @@ def test_class_decompilation(apk_path: Path):
         # Method-level
         print("Method-level decompilation:")
         expressions = core.reconstruct_expressions_from_apk(
-            str(apk_path),
-            "V5.c",
-            "onViewCreated"
+            str(apk_path), "V5.c", "onViewCreated"
         )
         print(f"   Found {len(expressions)} expressions in onViewCreated()")
 
         # Class-level
         print("\nClass-level decompilation:")
         class_info = core.decompile_class_from_apk(str(apk_path), "V5.c")
-        on_view_created = next((m for m in class_info.methods if m.name == "onViewCreated"), None)
+        on_view_created = next(
+            (m for m in class_info.methods if m.name == "onViewCreated"), None
+        )
         if on_view_created:
-            print(f"   Found {len(on_view_created.expressions)} expressions in onViewCreated()")
+            print(
+                f"   Found {len(on_view_created.expressions)} expressions in onViewCreated()"
+            )
             print(f"   Method info: {on_view_created.signature}")
 
         print("\n   ✅ Both approaches work! Class-level provides more context.")
@@ -172,6 +177,7 @@ def test_class_decompilation(apk_path: Path):
     print("  ✅ More efficient than individual method decompilation")
     print()
 
+
 def main():
     samples_dir = Path("../samples")
     apk = samples_dir / "com.sampleapp.apk"
@@ -180,6 +186,7 @@ def main():
         test_class_decompilation(apk)
     else:
         print(f"❌ APK not found: {apk}")
+
 
 if __name__ == "__main__":
     main()

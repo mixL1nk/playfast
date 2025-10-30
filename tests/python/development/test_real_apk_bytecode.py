@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Test bytecode extraction from real APK"""
+"""Test bytecode extraction from real APK."""
 
 from pathlib import Path
+
 from playfast import core
 
+
 def test_webview_security_analysis():
-    """
-    Analyze WebView security settings in real APK
+    """Analyze WebView security settings in real APK.
 
     Goal: Find setJavaScriptEnabled calls and extract parameter values
     """
@@ -33,14 +34,19 @@ def test_webview_security_analysis():
     for cls in classes:
         for method in cls.methods:
             # Look for methods that might set JavaScript
-            if "setJavaScriptEnabled" in method.name or "addJavascriptInterface" in method.name:
+            if (
+                "setJavaScriptEnabled" in method.name
+                or "addJavascriptInterface" in method.name
+            ):
                 webview_methods.append((cls, method))
 
     print(f"Found {len(webview_methods)} WebView security methods\n")
 
     for cls, method in webview_methods[:10]:
         print(f"  - {cls.simple_name}.{method.name}()")
-        print(f"    Params: {', '.join(method.parameters) if method.parameters else 'none'}")
+        print(
+            f"    Params: {', '.join(method.parameters) if method.parameters else 'none'}"
+        )
         print(f"    Return: {method.return_type}")
         print()
 
@@ -67,8 +73,9 @@ def test_webview_security_analysis():
     print("  - Extract CodeItem.insns() for each method")
     print()
 
+
 def show_next_steps():
-    """Show next implementation steps"""
+    """Show next implementation steps."""
     print("=" * 70)
     print("📋 Next Steps")
     print("=" * 70)
@@ -95,6 +102,7 @@ def show_next_steps():
 
     print("Total estimated time: 2-3 hours")
     print()
+
 
 if __name__ == "__main__":
     test_webview_security_analysis()

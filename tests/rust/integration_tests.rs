@@ -197,14 +197,14 @@ fn test_score_range_validation() {
     let valid_scores = vec![0.0, 1.5, 2.5, 3.0, 4.5, 5.0];
 
     for score in valid_scores {
-        assert!(score >= 0.0 && score <= 5.0);
+        assert!((0.0..=5.0).contains(&score));
     }
 
     // Invalid scores (for validation purposes)
     let invalid_scores = vec![-1.0, 5.1, 10.0, 100.0];
 
     for score in invalid_scores {
-        assert!(score < 0.0 || score > 5.0);
+        assert!(!(0.0..=5.0).contains(&score));
     }
 }
 
@@ -253,7 +253,7 @@ fn test_unicode_handling() {
         assert!(!s.is_empty());
         assert!(s.chars().count() > 0);
         // Verify that Unicode characters are properly handled
-        assert!(s.chars().any(|c| !c.is_ascii()));
+        assert!(!s.is_ascii());
     }
 }
 
@@ -270,7 +270,7 @@ fn test_special_characters_in_content() {
 
     for content in special_chars {
         assert!(!content.is_empty());
-        assert!(content.len() > 0);
+        assert!(!content.is_empty());
     }
 }
 
@@ -292,9 +292,9 @@ fn test_date_format_validation() {
         let month: i32 = parts[1].parse().unwrap();
         let day: i32 = parts[2].parse().unwrap();
 
-        assert!(year >= 2000 && year <= 2100);
-        assert!(month >= 1 && month <= 12);
-        assert!(day >= 1 && day <= 31);
+        assert!((2000..=2100).contains(&year));
+        assert!((1..=12).contains(&month));
+        assert!((1..=31).contains(&day));
     }
 }
 

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Test script for AndroidManifest parsing functionality"""
+"""Test script for AndroidManifest parsing functionality."""
 
 from pathlib import Path
 import time
+
 from playfast import core
 
+
 def test_manifest_parsing():
-    """Test parsing AndroidManifest.xml from Instagram APK"""
+    """Test parsing AndroidManifest.xml from Instagram APK."""
     apk_path = Path("../samples/com.instagram.android.apk")
 
     if not apk_path.exists():
@@ -22,7 +24,7 @@ def test_manifest_parsing():
         manifest = core.parse_manifest_from_apk(str(apk_path))
         elapsed = time.time() - start_time
 
-        print(f"\n✅ Successfully parsed manifest in {elapsed*1000:.2f}ms\n")
+        print(f"\n✅ Successfully parsed manifest in {elapsed * 1000:.2f}ms\n")
 
         # Display basic info
         print("📋 Basic Information:")
@@ -34,7 +36,7 @@ def test_manifest_parsing():
         print(f"  Application Label: {manifest.application_label or 'N/A'}")
 
         # Display component counts
-        print(f"\n🔧 Components:")
+        print("\n🔧 Components:")
         print(f"  Activities:        {len(manifest.activities)}")
         print(f"  Services:          {len(manifest.services)}")
         print(f"  Receivers:         {len(manifest.receivers)}")
@@ -43,28 +45,28 @@ def test_manifest_parsing():
 
         # Show first few activities
         if manifest.activities:
-            print(f"\n📱 Sample Activities (first 5):")
+            print("\n📱 Sample Activities (first 5):")
             for activity in manifest.activities[:5]:
                 print(f"  - {activity}")
 
         # Show first few services
         if manifest.services:
-            print(f"\n⚙️  Sample Services (first 5):")
+            print("\n⚙️  Sample Services (first 5):")
             for service in manifest.services[:5]:
                 print(f"  - {service}")
 
         # Show first few permissions
         if manifest.permissions:
-            print(f"\n🔒 Sample Permissions (first 10):")
+            print("\n🔒 Sample Permissions (first 10):")
             for perm in manifest.permissions[:10]:
                 print(f"  - {perm}")
 
         # Test __repr__
-        print(f"\n📊 Manifest representation:")
-        print(f"  {repr(manifest)}")
+        print("\n📊 Manifest representation:")
+        print(f"  {manifest!r}")
 
         # Test to_dict conversion
-        print(f"\n📝 Testing to_dict() method...")
+        print("\n📝 Testing to_dict() method...")
         manifest_dict = manifest.to_dict()
         print(f"  ✅ Successfully converted to dict with {len(manifest_dict)} keys")
 
@@ -74,7 +76,9 @@ def test_manifest_parsing():
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_manifest_parsing()

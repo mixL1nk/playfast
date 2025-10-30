@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Test bytecode analysis API"""
+"""Test bytecode analysis API."""
 
 from playfast import core
 
+
 def test_decode_bytecode():
-    """Test basic bytecode decoding"""
+    """Test basic bytecode decoding."""
     print("=" * 70)
     print("🔍 Testing Bytecode Decoding API")
     print("=" * 70)
@@ -58,8 +59,9 @@ def test_decode_bytecode():
     print("✅ Bytecode decoding API works!")
     print()
 
+
 def test_invoke_instructions():
-    """Test method invocation decoding"""
+    """Test method invocation decoding."""
     print("=" * 70)
     print("📞 Testing Method Invocation Decoding")
     print("=" * 70)
@@ -92,6 +94,7 @@ def test_invoke_instructions():
 
     print("✅ Method invocation decoding works!")
     print()
+
 
 if __name__ == "__main__":
     test_decode_bytecode()

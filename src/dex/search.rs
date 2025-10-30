@@ -4,6 +4,8 @@ use crate::dex::filter::{ClassFilter, MethodFilter};
 use crate::dex::models::{RustDexClass, RustDexMethod};
 
 /// Search engine for finding classes and methods in DEX files
+/// Note: This is used internally. Python API uses search_classes/search_methods functions.
+#[allow(dead_code)]
 pub struct DexSearcher {
     container: DexContainer,
 }

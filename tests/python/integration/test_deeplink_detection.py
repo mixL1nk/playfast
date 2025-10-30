@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Test deeplink detection in APK manifest"""
+"""Test deeplink detection in APK manifest."""
 
 from pathlib import Path
+
 from playfast import core
-import time
+
 
 def analyze_manifest_raw(apk_path):
-    """Analyze raw manifest to see available data"""
+    """Analyze raw manifest to see available data."""
     print("🔍 Raw Manifest Analysis")
     print("=" * 70)
 
@@ -24,15 +25,16 @@ def analyze_manifest_raw(apk_path):
 
     return manifest
 
+
 def test_instagram():
-    """Test Instagram APK"""
+    """Test Instagram APK."""
     apk_path = Path("../samples/com.instagram.android.apk")
 
     print("\n" + "=" * 70)
     print("📱 Instagram APK")
     print("=" * 70)
 
-    manifest = analyze_manifest_raw(apk_path)
+    analyze_manifest_raw(apk_path)
 
     # Known Instagram deeplinks (for reference)
     print("Known Instagram deeplink patterns:")
@@ -41,8 +43,9 @@ def test_instagram():
     print("  - https://instagram.com/xxx")
     print()
 
+
 def test_baemin():
-    """Test Baemin APK"""
+    """Test Baemin APK."""
     apk_path = Path("../samples/com.sampleapp.apk")
 
     print("\n" + "=" * 70)
@@ -52,7 +55,7 @@ def test_baemin():
     manifest = analyze_manifest_raw(apk_path)
 
     # Check for common deeplink activities
-    deeplink_keywords = ['deep', 'link', 'uri', 'url', 'intent', 'scheme']
+    deeplink_keywords = ["deep", "link", "uri", "url", "intent", "scheme"]
     potential_deeplink_activities = []
 
     for activity in manifest.activities:
@@ -61,7 +64,9 @@ def test_baemin():
             potential_deeplink_activities.append(activity)
 
     if potential_deeplink_activities:
-        print(f"✅ Found {len(potential_deeplink_activities)} potential deeplink-related activities:")
+        print(
+            f"✅ Found {len(potential_deeplink_activities)} potential deeplink-related activities:"
+        )
         for activity in potential_deeplink_activities[:10]:
             print(f"  - {activity}")
         if len(potential_deeplink_activities) > 10:
@@ -70,8 +75,9 @@ def test_baemin():
         print("❌ No obvious deeplink-related activities found")
     print()
 
+
 def check_manifest_xml_access():
-    """Check if we can access raw manifest XML"""
+    """Check if we can access raw manifest XML."""
     print("\n" + "=" * 70)
     print("🔧 Manifest XML Access Test")
     print("=" * 70)
@@ -94,6 +100,7 @@ def check_manifest_xml_access():
     except Exception as e:
         print(f"❌ Error: {e}")
         return False
+
 
 def main():
     print("🔍 Deeplink Detection Capability Analysis")
@@ -128,6 +135,7 @@ def main():
         print("  - Look for 'intent-filter' nodes")
         print("  - Extract 'data' child nodes with scheme/host attributes")
         print()
+
 
 if __name__ == "__main__":
     main()

@@ -88,7 +88,9 @@ jobs:
 
       - name: Run tests
         if: matrix.run-tests
-        run: uv run pytest --cov=python/playfast --cov-report=xml --cov-report=html
+        run: uv run pytest --cov=python/playfast --cov-report=xml --cov-report=html --cov-fail-under=75
+        env:
+          CI: "1"
 
       - name: Quick smoke test (build-only platforms)
         if: ${{ !matrix.run-tests }}
@@ -107,7 +109,9 @@ jobs:
       - name: Coverage Summary
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         run: |
-          uv run pytest --cov=python/playfast --cov-report=term-missing
+          uv run pytest --cov=python/playfast --cov-report=term-missing --cov-fail-under=75
+        env:
+          CI: "1"
 
       - name: Extract coverage percentage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'

@@ -3,12 +3,101 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
 
 from playfast import Category, Collection, RustClient
 from playfast.models import AppInfo, Review, SearchResult
+
+
+@pytest.fixture(scope="session")
+def sample_apk_path() -> Path:
+    """Provide path to sample APK file for testing.
+
+    The APK is downloaded once per test session and cached locally.
+    Set PLAYFAST_TEST_APK environment variable to use a different APK path.
+    Set PLAYFAST_SKIP_DOWNLOAD=1 to skip auto-download (tests will be skipped if APK is missing).
+
+    Returns:
+        Path: Path to the sample APK file
+
+    Raises:
+        pytest.skip: If APK is not available and auto-download is disabled
+
+    """
+    # Skip APK download in CI environment
+    if os.getenv("CI") or os.getenv("PLAYFAST_SKIP_APK_TESTS"):
+        pytest.skip("APK tests are disabled in CI environment")
+
+    # Allow custom APK path via environment variable
+    custom_apk = os.getenv("PLAYFAST_TEST_APK")
+    if custom_apk:
+        apk_path = Path(custom_apk)
+        if apk_path.exists():
+            return apk_path
+        pytest.skip(f"Custom APK not found: {custom_apk}")
+
+    # Use cached APK in /tmp/playfast_apks
+    apk_path = Path("/tmp/playfast_apks/com.sampleapp.apk")
+
+    # If APK exists, return it
+    if apk_path.exists():
+        return apk_path
+
+    # Check if auto-download is disabled
+    if os.getenv("PLAYFAST_SKIP_DOWNLOAD") == "1":
+        pytest.skip(
+            "Sample APK not found and auto-download is disabled (PLAYFAST_SKIP_DOWNLOAD=1)"
+        )
+
+    # Try to download the APK automatically
+    try:
+        from playfast import ApkDownloader
+
+        # Look for credentials
+        creds_paths = [
+            Path.home() / ".config" / "playfast" / "creds.json",
+            Path.home() / ".config" / "playfast" / "credentials.json",
+            Path.home() / ".playfast" / "credentials.json",
+        ]
+
+        creds_path = None
+        for path in creds_paths:
+            if path.exists():
+                creds_path = path
+                break
+
+        if not creds_path:
+            pytest.skip(
+                "Sample APK not found and cannot auto-download (no credentials). "
+                "Please download manually or set up credentials."
+            )
+
+        # Download APK
+        print("\n📥 Downloading sample APK for testing (one-time setup)...")
+        downloader = ApkDownloader.from_credentials(str(creds_path))
+        apk_path.parent.mkdir(parents=True, exist_ok=True)
+
+        downloaded_path = downloader.download(
+            package_id="com.sampleapp", dest_path=str(apk_path.parent)
+        )
+
+        print(f"✅ Downloaded to: {downloaded_path}")
+        return Path(downloaded_path)
+
+    except Exception as e:
+        pytest.skip(f"Could not download sample APK: {e}")
+
+
+@pytest.fixture(scope="session")
+def apk_path(sample_apk_path: Path) -> Path:
+    """Alias for sample_apk_path for backwards compatibility.
+
+    This fixture is deprecated. Use sample_apk_path instead.
+    """
+    return sample_apk_path
 
 
 @pytest.fixture
@@ -417,3 +506,10 @@ def add_doctest_namespace(doctest_namespace: dict) -> None:
     import asyncio
 
     doctest_namespace["asyncio"] = asyncio
+
+
+def pytest_configure(config):
+    """Configure pytest with custom settings."""
+    # Auto-skip APK tests in CI environment
+    if os.getenv("CI") or os.getenv("PLAYFAST_SKIP_APK_TESTS"):
+        config.option.markexpr = "not apk"

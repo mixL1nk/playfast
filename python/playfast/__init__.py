@@ -45,10 +45,9 @@ __author__ = "Taeyun Jang"
 __license__ = "MIT"
 
 # High-level API
-from playfast.apk import ApkAnalyzer
-
 # Low-level Rust API (advanced users)
 from playfast import core
+from playfast.apk import ApkAnalyzer
 
 # High-level batch API (recommended)
 from playfast.batch import (
@@ -84,6 +83,7 @@ from playfast.constants import (
     get_unique_countries,
     is_unique_region,
 )
+from playfast.downloader import ApkDownloader
 
 # Exceptions
 from playfast.exceptions import (
@@ -111,6 +111,7 @@ __all__ = [
     "RustClient",
     "quick_get_app",
     "ApkAnalyzer",
+    "ApkDownloader",
     # Models
     "AppInfo",
     "Review",

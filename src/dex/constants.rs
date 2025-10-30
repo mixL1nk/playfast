@@ -1,7 +1,11 @@
 /// DEX file format constants
 /// Reference: https://source.android.com/docs/core/runtime/dex-format
+///
+/// Note: These constants are DEX format specifications. Many are kept for completeness
+/// even if not currently used in the implementation.
 
 /// Access flags for classes, fields, and methods
+#[allow(dead_code)]
 pub mod access_flags {
     // Used for classes, fields, and methods
     pub const ACC_PUBLIC: u32 = 0x0001;
@@ -93,6 +97,7 @@ pub mod access_flags {
 }
 
 /// Type descriptor constants
+#[allow(dead_code)]
 pub mod type_descriptors {
     pub const VOID: char = 'V';
     pub const BOOLEAN: char = 'Z';
@@ -124,6 +129,7 @@ pub mod type_descriptors {
 }
 
 /// DEX file magic and version constants
+#[allow(dead_code)]
 pub mod dex_magic {
     pub const MAGIC: &[u8] = b"dex\n";
     pub const VERSION_035: &[u8] = b"035\0";
@@ -142,6 +148,7 @@ pub mod dex_magic {
 }
 
 /// DEX file structure constants
+#[allow(dead_code)]
 pub mod structure {
     pub const HEADER_SIZE: u32 = 0x70; // 112 bytes
     pub const ENDIAN_CONSTANT: u32 = 0x12345678;
@@ -159,6 +166,7 @@ pub mod structure {
 }
 
 /// DEX map item type codes
+#[allow(dead_code)]
 #[repr(u16)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MapItemType {

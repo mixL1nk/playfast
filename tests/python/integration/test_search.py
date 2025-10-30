@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Test script for class/method search functionality"""
+"""Test script for class/method search functionality."""
 
 from pathlib import Path
 import time
+
 from playfast import core
 
+
 def test_class_search():
-    """Test searching for classes with filters"""
+    """Test searching for classes with filters."""
     apk_path = Path("../samples/com.instagram.android.apk")
 
     if not apk_path.exists():
@@ -23,7 +25,7 @@ def test_class_search():
     start_time = time.time()
     results1 = core.search_classes(str(apk_path), filter1, limit=10)
     elapsed = time.time() - start_time
-    print(f"✅ Found {len(results1)} activities in {elapsed*1000:.2f}ms")
+    print(f"✅ Found {len(results1)} activities in {elapsed * 1000:.2f}ms")
     for cls in results1[:5]:
         print(f"  - {cls.class_name}")
 
@@ -34,7 +36,7 @@ def test_class_search():
     start_time = time.time()
     results2 = core.search_classes(str(apk_path), filter2, limit=10)
     elapsed = time.time() - start_time
-    print(f"✅ Found {len(results2)} classes in {elapsed*1000:.2f}ms")
+    print(f"✅ Found {len(results2)} classes in {elapsed * 1000:.2f}ms")
     for cls in results2:
         print(f"  - {cls.class_name}")
 
@@ -42,18 +44,18 @@ def test_class_search():
     print("\n🔍 Test 3: Search excluding android/androidx packages")
     print("-" * 70)
     filter3 = core.ClassFilter(
-        exclude_packages=["android", "androidx", "com.google"],
-        class_name="Service"
+        exclude_packages=["android", "androidx", "com.google"], class_name="Service"
     )
     start_time = time.time()
     results3 = core.search_classes(str(apk_path), filter3, limit=10)
     elapsed = time.time() - start_time
-    print(f"✅ Found {len(results3)} services in {elapsed*1000:.2f}ms")
+    print(f"✅ Found {len(results3)} services in {elapsed * 1000:.2f}ms")
     for cls in results3[:5]:
         print(f"  - {cls.class_name}")
 
+
 def test_method_search():
-    """Test searching for methods with filters"""
+    """Test searching for methods with filters."""
     apk_path = Path("../samples/com.instagram.android.apk")
 
     if not apk_path.exists():
@@ -71,7 +73,7 @@ def test_method_search():
     start_time = time.time()
     results = core.search_methods(str(apk_path), class_filter, method_filter, limit=5)
     elapsed = time.time() - start_time
-    print(f"✅ Found {len(results)} onCreate methods in {elapsed*1000:.2f}ms")
+    print(f"✅ Found {len(results)} onCreate methods in {elapsed * 1000:.2f}ms")
     for cls, method in results:
         print(f"  - {cls.simple_name}.{method.name}({', '.join(method.parameters)})")
 
@@ -79,14 +81,13 @@ def test_method_search():
     print("\n🔍 Test 2: Find getter methods (0 parameters, return type)")
     print("-" * 70)
     class_filter2 = core.ClassFilter(packages=["com.instagram"])
-    method_filter2 = core.MethodFilter(
-        method_name="get",
-        param_count=0
-    )
+    method_filter2 = core.MethodFilter(method_name="get", param_count=0)
     start_time = time.time()
-    results2 = core.search_methods(str(apk_path), class_filter2, method_filter2, limit=10)
+    results2 = core.search_methods(
+        str(apk_path), class_filter2, method_filter2, limit=10
+    )
     elapsed = time.time() - start_time
-    print(f"✅ Found {len(results2)} getter methods in {elapsed*1000:.2f}ms")
+    print(f"✅ Found {len(results2)} getter methods in {elapsed * 1000:.2f}ms")
     for cls, method in results2[:5]:
         print(f"  - {cls.simple_name}.{method.name}() -> {method.return_type}")
 
@@ -96,12 +97,17 @@ def test_method_search():
     class_filter3 = core.ClassFilter(packages=["com.instagram"])
     method_filter3 = core.MethodFilter(return_type="String")
     start_time = time.time()
-    results3 = core.search_methods(str(apk_path), class_filter3, method_filter3, limit=10)
+    results3 = core.search_methods(
+        str(apk_path), class_filter3, method_filter3, limit=10
+    )
     elapsed = time.time() - start_time
-    print(f"✅ Found {len(results3)} methods returning String in {elapsed*1000:.2f}ms")
+    print(
+        f"✅ Found {len(results3)} methods returning String in {elapsed * 1000:.2f}ms"
+    )
     for cls, method in results3[:5]:
-        params = ', '.join(method.parameters) if method.parameters else ''
+        params = ", ".join(method.parameters) if method.parameters else ""
         print(f"  - {cls.simple_name}.{method.name}({params}) -> {method.return_type}")
+
 
 def main():
     try:
@@ -112,7 +118,9 @@ def main():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()

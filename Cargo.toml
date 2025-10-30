@@ -14,7 +14,7 @@ path = "tests/rust/integration_tests.rs"
 
 [dependencies]
 # "extension-module" tells pyo3 we want to build an extension module (skips linking against libpython.so)
-pyo3 = { version = "0.26.0", features = ["extension-module", "abi3-py311"] }
+pyo3 = { version = "0.27.1", features = ["extension-module", "abi3-py311"] }
 reqwest = { version = "0.12.24", default-features = false, features = ["json", "rustls-tls"] }  # Use rustls instead of OpenSSL
 tokio = { version = "1.47.1", features = ["rt-multi-thread", "macros"] }
 once_cell = "1.20.2"
@@ -31,3 +31,6 @@ arsc = "0.1.5"
 rayon = "1.10"
 zip = "6.0.0"
 byteorder = "1.5"  # For reading binary data in little-endian format
+
+# Google Play API for APK download
+gpapi = { git = "https://github.com/EFForg/rs-google-play.git", package = "gpapi" }

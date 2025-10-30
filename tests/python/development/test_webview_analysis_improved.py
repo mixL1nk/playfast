@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Improved WebView Security Analysis - Shows which methods enable/disable JavaScript"""
+"""Improved WebView Security Analysis - Shows which methods enable/disable JavaScript."""
 
 from pathlib import Path
+
 from playfast import core
-from collections import defaultdict
+
 
 def analyze_method_security(class_name: str, method_name: str, bytecode: list) -> dict:
-    """
-    Analyze a single method to determine JavaScript settings
+    """Analyze a single method to determine JavaScript settings.
 
     Returns dict with:
     - has_javascript_call: bool
@@ -15,7 +15,11 @@ def analyze_method_security(class_name: str, method_name: str, bytecode: list) -
     - evidence: list of instructions
     """
     if not bytecode:
-        return {'has_javascript_call': False, 'javascript_enabled': None, 'evidence': []}
+        return {
+            "has_javascript_call": False,
+            "javascript_enabled": None,
+            "evidence": [],
+        }
 
     instructions = core.decode_bytecode(bytecode)
 
@@ -25,7 +29,7 @@ def analyze_method_security(class_name: str, method_name: str, bytecode: list) -
     has_set_js_enabled = False
     js_enabled_value = None
 
-    for i, insn in enumerate(instructions):
+    for _i, insn in enumerate(instructions):
         # Track const instructions
         if insn.is_const() and insn.dest is not None and insn.value is not None:
             register_values[insn.dest] = insn.value
@@ -42,25 +46,27 @@ def analyze_method_security(class_name: str, method_name: str, bytecode: list) -
                         value = register_values[arg_reg]
                         if value in [0, 1]:
                             # Found a boolean argument to a method call
-                            evidence.append({
-                                'instruction': insn.raw,
-                                'register': f'v{arg_reg}',
-                                'value': bool(value),
-                                'method_idx': insn.method_idx
-                            })
+                            evidence.append(
+                                {
+                                    "instruction": insn.raw,
+                                    "register": f"v{arg_reg}",
+                                    "value": bool(value),
+                                    "method_idx": insn.method_idx,
+                                }
+                            )
                             # Heuristic: assume this is JavaScript-related
                             has_set_js_enabled = True
                             js_enabled_value = bool(value)
 
     return {
-        'has_javascript_call': has_set_js_enabled,
-        'javascript_enabled': js_enabled_value,
-        'evidence': evidence
+        "has_javascript_call": has_set_js_enabled,
+        "javascript_enabled": js_enabled_value,
+        "evidence": evidence,
     }
 
-def analyze_webview_security_improved(apk_path: Path):
-    """Improved WebView security analysis with method-level detail"""
 
+def analyze_webview_security_improved(apk_path: Path):
+    """Improved WebView security analysis with method-level detail."""
     print("=" * 70)
     print("🔐 Improved WebView Security Analysis")
     print("=" * 70)
@@ -78,9 +84,11 @@ def analyze_webview_security_improved(apk_path: Path):
 
     webview_classes = []
     for cls in all_classes:
-        if any('WebView' in method.return_type or
-               any('WebView' in param for param in method.parameters)
-               for method in cls.methods):
+        if any(
+            "WebView" in method.return_type
+            or any("WebView" in param for param in method.parameters)
+            for method in cls.methods
+        ):
             webview_classes.append(cls)
 
     print(f"  Found {len(webview_classes)} WebView-related classes\n")
@@ -93,10 +101,7 @@ def analyze_webview_security_improved(apk_path: Path):
     print("Step 2: Extracting and analyzing bytecode...")
     sample_classes = webview_classes[:15]  # Analyze more classes
 
-    bytecode_results = core.extract_methods_bytecode(
-        str(apk_path),
-        sample_classes
-    )
+    bytecode_results = core.extract_methods_bytecode(str(apk_path), sample_classes)
 
     print(f"  Extracted bytecode for {len(bytecode_results)} methods\n")
 
@@ -112,18 +117,18 @@ def analyze_webview_security_improved(apk_path: Path):
     for class_name, method_name, bytecode in bytecode_results:
         analysis = analyze_method_security(class_name, method_name, bytecode)
 
-        if analysis['has_javascript_call']:
+        if analysis["has_javascript_call"]:
             method_info = {
-                'class': class_name.split('.')[-1],
-                'full_class': class_name,
-                'method': method_name,
-                'enabled': analysis['javascript_enabled'],
-                'evidence': analysis['evidence']
+                "class": class_name.split(".")[-1],
+                "full_class": class_name,
+                "method": method_name,
+                "enabled": analysis["javascript_enabled"],
+                "evidence": analysis["evidence"],
             }
 
-            if analysis['javascript_enabled'] is True:
+            if analysis["javascript_enabled"] is True:
                 js_enabled_methods.append(method_info)
-            elif analysis['javascript_enabled'] is False:
+            elif analysis["javascript_enabled"] is False:
                 js_disabled_methods.append(method_info)
             else:
                 unclear_methods.append(method_info)
@@ -136,7 +141,7 @@ def analyze_webview_security_improved(apk_path: Path):
         for method in js_enabled_methods:
             print(f"\n📍 {method['class']}.{method['method']}()")
             print(f"   Class: {method['full_class']}")
-            for ev in method['evidence']:
+            for ev in method["evidence"]:
                 print(f"   ✓ {ev['instruction']}")
                 print(f"     → Register {ev['register']} = TRUE")
                 print(f"     → Method call @ index {ev['method_idx']}")
@@ -151,7 +156,7 @@ def analyze_webview_security_improved(apk_path: Path):
         for method in js_disabled_methods:
             print(f"\n📍 {method['class']}.{method['method']}()")
             print(f"   Class: {method['full_class']}")
-            for ev in method['evidence']:
+            for ev in method["evidence"]:
                 print(f"   ✓ {ev['instruction']}")
                 print(f"     → Register {ev['register']} = FALSE")
                 print(f"     → Method call @ index {ev['method_idx']}")
@@ -210,7 +215,7 @@ def analyze_webview_security_improved(apk_path: Path):
         print(f"Method: {example['full_class']}.{example['method']}()\n")
         print("Bytecode pattern:")
         print("```")
-        for ev in example['evidence']:
+        for ev in example["evidence"]:
             print(f"{ev['instruction']}")
         print("```")
         print()
@@ -219,6 +224,7 @@ def analyze_webview_security_improved(apk_path: Path):
         print("  2. invoke-* passes this register to a method")
         print("  3. Likely calling setJavaScriptEnabled(true)")
         print()
+
 
 def main():
     samples_dir = Path("../samples")
@@ -230,6 +236,7 @@ def main():
     print("=" * 70)
     print("✅ Improved Analysis Complete!")
     print("=" * 70)
+
 
 if __name__ == "__main__":
     main()

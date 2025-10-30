@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
-"""Test deeplink extraction from APK manifests"""
+"""Test deeplink extraction from APK manifests."""
 
 from pathlib import Path
-from playfast import core
 import time
 
+from playfast import core
+
+
 def analyze_deeplinks(apk_name, apk_path):
-    """Analyze deeplinks in an APK"""
-    print(f"\n{'='*70}")
+    """Analyze deeplinks in an APK."""
+    print(f"\n{'=' * 70}")
     print(f"🔍 Deeplink Analysis: {apk_name}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     start = time.time()
     manifest = core.parse_manifest_from_apk(str(apk_path))
     parse_time = time.time() - start
 
-    print(f"✅ Manifest parsed in {parse_time*1000:.2f}ms")
+    print(f"✅ Manifest parsed in {parse_time * 1000:.2f}ms")
     print(f"Package: {manifest.package_name}")
     print(f"Intent filters found: {len(manifest.intent_filters)}")
     print()
@@ -67,15 +69,15 @@ def analyze_deeplinks(apk_name, apk_path):
         print()
 
     # Summary
-    print("="*70)
+    print("=" * 70)
     print("📊 Deeplink Summary:")
     print(f"  HTTP deeplinks:   {len(set(http_deeplinks))}")
     print(f"  HTTPS deeplinks:  {len(set(https_deeplinks))}")
-    print(f"  Custom schemes:   {len(set(s for s, _ in custom_schemes))}")
+    print(f"  Custom schemes:   {len({s for s, _ in custom_schemes})}")
 
     if custom_schemes:
-        unique_schemes = set(s for s, _ in custom_schemes)
-        print(f"\n  Custom URL schemes:")
+        unique_schemes = {s for s, _ in custom_schemes}
+        print("\n  Custom URL schemes:")
         for scheme in sorted(unique_schemes):
             print(f"    - {scheme}://")
 
@@ -88,9 +90,10 @@ def analyze_deeplinks(apk_name, apk_path):
         print("  Recommendation: Use HTTPS instead")
         print()
 
+
 def main():
     print("🔍 Deeplink Extraction Test")
-    print("="*70)
+    print("=" * 70)
 
     apks = [
         ("Baemin (com.sampleapp.apk)", Path("../samples/com.sampleapp.apk")),
@@ -107,10 +110,12 @@ def main():
         except Exception as e:
             print(f"❌ Error analyzing {apk_name}: {e}")
             import traceback
+
             traceback.print_exc()
 
-    print("="*70)
+    print("=" * 70)
     print("✅ Deeplink extraction test complete!")
+
 
 if __name__ == "__main__":
     main()

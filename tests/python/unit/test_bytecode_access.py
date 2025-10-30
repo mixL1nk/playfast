@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Test bytecode access capabilities - POC"""
+"""Test bytecode access capabilities - POC."""
 
 from pathlib import Path
+
 from playfast import core
 
+
 def test_bytecode_structure():
-    """
-    현재 구현 상태 테스트
+    """현재 구현 상태 테스트.
 
     목적: code_off (바이트코드 오프셋)에 접근 가능한지 확인
     """
@@ -42,7 +43,9 @@ def test_bytecode_structure():
         for i, (cls, method) in enumerate(webview_methods[:5], 1):
             print(f"{i}. {cls.simple_name}.{method.name}()")
             print(f"   Package: {cls.package_name}")
-            print(f"   Parameters: {', '.join(method.parameters) if method.parameters else 'none'}")
+            print(
+                f"   Parameters: {', '.join(method.parameters) if method.parameters else 'none'}"
+            )
             print(f"   Return: {method.return_type}")
             print()
     else:
@@ -83,10 +86,9 @@ def test_bytecode_structure():
     print("📄 자세한 내용은 BYTECODE_ANALYSIS_PLAN.md 참고")
     print()
 
+
 def test_method_signature_search():
-    """
-    현재 가능한 검색 방법 시연
-    """
+    """현재 가능한 검색 방법 시연."""
     print("\n" + "=" * 70)
     print("🔍 현재 가능한 검색 방법 시연")
     print("=" * 70)
@@ -107,7 +109,7 @@ def test_method_signature_search():
     js_methods = []
     for cls in classes:
         for method in cls.methods:
-            if 'javascript' in method.name.lower():
+            if "javascript" in method.name.lower():
                 js_methods.append((cls, method))
 
     print(f"   결과: {len(js_methods)}개 메서드 발견")
@@ -125,12 +127,12 @@ def test_method_signature_search():
     webview_param_methods = []
     for cls in classes:
         for method in cls.methods:
-            if any('WebView' in p for p in method.parameters):
+            if any("WebView" in p for p in method.parameters):
                 webview_param_methods.append((cls, method))
 
     print(f"   결과: {len(webview_param_methods)}개 메서드 발견")
     for cls, method in webview_param_methods[:3]:
-        params = ', '.join(method.parameters)
+        params = ", ".join(method.parameters)
         print(f"   - {cls.simple_name}.{method.name}({params})")
     if len(webview_param_methods) > 3:
         print(f"   ... and {len(webview_param_methods) - 3} more")
@@ -144,7 +146,7 @@ def test_method_signature_search():
     webview_return_methods = []
     for cls in classes:
         for method in cls.methods:
-            if 'WebView' in method.return_type:
+            if "WebView" in method.return_type:
                 webview_return_methods.append((cls, method))
 
     print(f"   결과: {len(webview_return_methods)}개 메서드 발견")
@@ -153,6 +155,7 @@ def test_method_signature_search():
     if len(webview_return_methods) > 3:
         print(f"   ... and {len(webview_return_methods) - 3} more")
     print()
+
 
 def main():
     print("🔐 바이트코드 분석 기능 검토")
@@ -175,6 +178,7 @@ def main():
     print("  2. 구현 방향 결정 (Phase 1-2 / 전체 / dex-rs)")
     print("  3. WebView 보안 분석 완성")
     print()
+
 
 if __name__ == "__main__":
     main()

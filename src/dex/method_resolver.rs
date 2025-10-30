@@ -5,7 +5,7 @@
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::error::{DexError, Result};
+use super::error::Result;
 use super::parser::DexParser;
 
 /// Resolved method signature

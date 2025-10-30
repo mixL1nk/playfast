@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""
-Test script for DEX parsing functionality.
+"""Test script for DEX parsing functionality.
 Tests class extraction from Instagram APK.
 """
-import sys
+
 from pathlib import Path
+import sys
 import time
+
 
 try:
     from playfast import core
+
     print("✓ Successfully imported playfast.core")
 except ImportError as e:
     print(f"✗ Failed to import playfast.core: {e}")
@@ -31,10 +33,10 @@ try:
     elapsed = time.time() - start
 
     print(f"   Extracted {len(classes):,} classes in {elapsed:.2f}s")
-    print(f"   Speed: {len(classes)/elapsed:.0f} classes/sec")
+    print(f"   Speed: {len(classes) / elapsed:.0f} classes/sec")
 
     # Show some sample classes
-    print(f"\n📦 Sample Classes (first 10):")
+    print("\n📦 Sample Classes (first 10):")
     for i, cls in enumerate(classes[:10], 1):
         print(f"   {i}. {cls.class_name}")
         print(f"      Package: {cls.package_name}")
@@ -42,11 +44,13 @@ try:
         if cls.superclass:
             print(f"      Extends: {cls.superclass}")
         if cls.methods:
-            print(f"      Sample method: {cls.methods[0].name}({', '.join(cls.methods[0].parameters)}) -> {cls.methods[0].return_type}")
+            print(
+                f"      Sample method: {cls.methods[0].name}({', '.join(cls.methods[0].parameters)}) -> {cls.methods[0].return_type}"
+            )
 
     # Find specific classes
-    print(f"\n🔎 Finding Instagram-specific classes...")
-    instagram_classes = [c for c in classes if 'instagram' in c.package_name.lower()]
+    print("\n🔎 Finding Instagram-specific classes...")
+    instagram_classes = [c for c in classes if "instagram" in c.package_name.lower()]
     print(f"   Found {len(instagram_classes):,} Instagram classes")
 
     if instagram_classes:
@@ -58,28 +62,32 @@ try:
         print(f"   - Fields: {len(sample.fields)}")
 
         if sample.methods:
-            print(f"\n   First few methods:")
+            print("\n   First few methods:")
             for method in sample.methods[:5]:
                 flags = []
-                if method.is_public(): flags.append("public")
-                if method.is_private(): flags.append("private")
-                if method.is_static(): flags.append("static")
+                if method.is_public():
+                    flags.append("public")
+                if method.is_private():
+                    flags.append("private")
+                if method.is_static():
+                    flags.append("static")
                 flags_str = " ".join(flags) if flags else "package-private"
                 print(f"      {flags_str} {method.name}(...)")
 
     # Test sequential extraction (comparison)
-    print(f"\n🔍 Extracting classes (sequential, for comparison)...")
+    print("\n🔍 Extracting classes (sequential, for comparison)...")
     start = time.time()
     classes_seq = core.extract_classes_from_apk(str(apk_path), parallel=False)
     elapsed_seq = time.time() - start
 
     print(f"   Extracted {len(classes_seq):,} classes in {elapsed_seq:.2f}s")
-    print(f"   Speedup: {elapsed_seq/elapsed:.2f}x faster with parallel")
+    print(f"   Speedup: {elapsed_seq / elapsed:.2f}x faster with parallel")
 
     print("\n✓ All DEX parsing tests passed!")
 
 except Exception as e:
     print(f"\n✗ Error during testing: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

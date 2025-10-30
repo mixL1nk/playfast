@@ -2,7 +2,6 @@
 
 use pyo3::prelude::*;
 
-use super::decoder::DexDecoder;
 use super::parser::DexParser;
 
 /// Extract bytecode for methods from classes in an APK

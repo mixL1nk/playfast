@@ -75,6 +75,8 @@ impl ClassFilter {
 }
 
 /// Builder for ClassFilter
+/// Note: Reserved for future use. Python API uses ClassFilter directly.
+#[allow(dead_code)]
 #[derive(Debug, Default)]
 pub struct ClassFilterBuilder {
     packages: Vec<String>,
@@ -202,6 +204,8 @@ impl MethodFilter {
 }
 
 /// Builder for MethodFilter
+/// Note: Reserved for future use. Python API uses MethodFilter directly.
+#[allow(dead_code)]
 #[derive(Debug, Default)]
 pub struct MethodFilterBuilder {
     method_name: Option<String>,

@@ -4,9 +4,12 @@ This module provides a convenient Python wrapper around the Rust core
 for analyzing Android APK files.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
-from . import core
+from typing import Any
+
+from playfast import core
 
 
 class ApkAnalyzer:
@@ -26,9 +29,10 @@ class ApkAnalyzer:
         >>> activities = analyzer.find_activities(package="com.example")
         >>> for activity in activities:
         ...     print(activity.class_name)
+
     """
 
-    def __init__(self, apk_path: Union[str, Path], load_classes: bool = False):
+    def __init__(self, apk_path: str | Path, load_classes: bool = False) -> None:
         """Initialize the APK analyzer.
 
         Args:
@@ -37,14 +41,16 @@ class ApkAnalyzer:
 
         Raises:
             Exception: If APK cannot be opened or is invalid
+
         """
         self.apk_path = Path(apk_path)
         if not self.apk_path.exists():
-            raise FileNotFoundError(f"APK file not found: {self.apk_path}")
+            msg = f"APK file not found: {self.apk_path}"
+            raise FileNotFoundError(msg)
 
         self._apk_path_str = str(self.apk_path)
-        self._manifest = None
-        self._classes = None
+        self._manifest: core.RustManifestInfo | None = None
+        self._classes: list[core.RustDexClass] | None = None
 
         # Load basic APK info
         self._load_info()
@@ -52,7 +58,7 @@ class ApkAnalyzer:
         if load_classes:
             self.load_classes()
 
-    def _load_info(self):
+    def _load_info(self) -> None:
         """Load basic APK information."""
         dex_count, has_manifest, has_resources, dex_files = core.extract_apk_info(
             self._apk_path_str
@@ -63,17 +69,18 @@ class ApkAnalyzer:
         self.dex_files = dex_files
 
     @property
-    def manifest(self):
+    def manifest(self) -> core.RustManifestInfo:
         """Get parsed AndroidManifest.xml.
 
         Returns:
             RustManifestInfo: Parsed manifest information
+
         """
         if self._manifest is None:
             self._manifest = core.parse_manifest_from_apk(self._apk_path_str)
         return self._manifest
 
-    def load_classes(self, parallel: bool = True) -> List:
+    def load_classes(self, parallel: bool = True) -> list[core.RustDexClass]:
         """Load all classes from the APK.
 
         Args:
@@ -81,31 +88,32 @@ class ApkAnalyzer:
 
         Returns:
             List of RustDexClass objects
+
         """
         if self._classes is None:
             self._classes = core.extract_classes_from_apk(
-                self._apk_path_str,
-                parallel=parallel
+                self._apk_path_str, parallel=parallel
             )
         return self._classes
 
     @property
-    def classes(self) -> List:
+    def classes(self) -> list[core.RustDexClass]:
         """Get all classes (loads if not already loaded).
 
         Returns:
             List of RustDexClass objects
+
         """
         return self.load_classes()
 
     def find_classes(
         self,
-        package: Optional[str] = None,
-        exclude_packages: Optional[List[str]] = None,
-        name: Optional[str] = None,
-        limit: Optional[int] = None,
-        parallel: bool = True
-    ) -> List:
+        package: str | None = None,
+        exclude_packages: list[str] | None = None,
+        name: str | None = None,
+        limit: int | None = None,
+        parallel: bool = True,
+    ) -> list[core.RustDexClass]:
         """Find classes matching the specified criteria.
 
         Args:
@@ -126,36 +134,34 @@ class ApkAnalyzer:
             >>> classes = analyzer.find_classes(package="com.example.ui")
             >>>
             >>> # Exclude system packages
-            >>> app_classes = analyzer.find_classes(
-            ...     exclude_packages=["android", "androidx"]
-            ... )
-        """
-        filter_args = {}
-        if package:
-            filter_args['packages'] = [package]
-        if exclude_packages:
-            filter_args['exclude_packages'] = exclude_packages
-        if name:
-            filter_args['class_name'] = name
+            >>> app_classes = analyzer.find_classes(exclude_packages=["android", "androidx"])
 
-        class_filter = core.ClassFilter(**filter_args)
+        """
+        # Build ClassFilter object
+        # Note: packages parameter takes a list
+        packages = [package] if package else None
+        class_filter = core.ClassFilter(
+            class_name=name,
+            packages=packages,
+            exclude_packages=exclude_packages,
+        )
         return core.search_classes(
             self._apk_path_str,
             class_filter,
             limit=limit,
-            parallel=parallel
+            parallel=parallel,
         )
 
     def find_methods(
         self,
-        method_name: Optional[str] = None,
-        param_count: Optional[int] = None,
-        return_type: Optional[str] = None,
-        class_package: Optional[str] = None,
-        class_name: Optional[str] = None,
-        limit: Optional[int] = None,
-        parallel: bool = True
-    ) -> List[Tuple]:
+        method_name: str | None = None,
+        param_count: int | None = None,
+        return_type: str | None = None,
+        class_package: str | None = None,
+        class_name: str | None = None,
+        limit: int | None = None,
+        parallel: bool = True,
+    ) -> list[core.RustDexMethod]:
         """Find methods matching the specified criteria.
 
         Args:
@@ -168,55 +174,45 @@ class ApkAnalyzer:
             parallel: Use parallel processing (default: True)
 
         Returns:
-            List of (RustDexClass, RustDexMethod) tuples
+            List of RustDexMethod objects
 
         Example:
             >>> # Find onCreate methods
             >>> methods = analyzer.find_methods(method_name="onCreate")
-            >>> for cls, method in methods:
-            ...     print(f"{cls.simple_name}.{method.name}")
+            >>> for method in methods:
+            ...     print(f"{method.class_name}.{method.method_name}")
             >>>
             >>> # Find getter methods (no parameters)
-            >>> getters = analyzer.find_methods(
-            ...     method_name="get",
-            ...     param_count=0
-            ... )
+            >>> getters = analyzer.find_methods(method_name="get")
             >>>
-            >>> # Find methods returning String
-            >>> string_methods = analyzer.find_methods(return_type="String")
+            >>> # Find methods in specific class
+            >>> string_methods = analyzer.find_methods(class_name="String")
+
         """
-        class_filter_args = {}
-        if class_package:
-            class_filter_args['packages'] = [class_package]
-        if class_name:
-            class_filter_args['class_name'] = class_name
-
-        method_filter_args = {}
-        if method_name:
-            method_filter_args['method_name'] = method_name
-        if param_count is not None:
-            method_filter_args['param_count'] = param_count
-        if return_type:
-            method_filter_args['return_type'] = return_type
-
-        class_filter = core.ClassFilter(**class_filter_args)
-        method_filter = core.MethodFilter(**method_filter_args)
-
+        # Build ClassFilter and MethodFilter objects
+        packages = [class_package] if class_package else None
+        class_filter = core.ClassFilter(
+            class_name=class_name,
+            packages=packages,
+        )
+        method_filter = core.MethodFilter(
+            method_name=method_name,
+            param_count=param_count,
+            return_type=return_type,
+        )
         return core.search_methods(
             self._apk_path_str,
             class_filter,
             method_filter,
             limit=limit,
-            parallel=parallel
+            parallel=parallel,
         )
 
     # Convenience methods for common searches
 
     def find_activities(
-        self,
-        package: Optional[str] = None,
-        limit: Optional[int] = None
-    ) -> List:
+        self, package: str | None = None, limit: int | None = None
+    ) -> list[core.RustDexClass]:
         """Find Activity classes.
 
         Args:
@@ -225,18 +221,13 @@ class ApkAnalyzer:
 
         Returns:
             List of Activity classes
+
         """
-        return self.find_classes(
-            package=package,
-            name="Activity",
-            limit=limit
-        )
+        return self.find_classes(package=package, name="Activity", limit=limit)
 
     def find_services(
-        self,
-        package: Optional[str] = None,
-        limit: Optional[int] = None
-    ) -> List:
+        self, package: str | None = None, limit: int | None = None
+    ) -> list[core.RustDexClass]:
         """Find Service classes.
 
         Args:
@@ -245,18 +236,13 @@ class ApkAnalyzer:
 
         Returns:
             List of Service classes
+
         """
-        return self.find_classes(
-            package=package,
-            name="Service",
-            limit=limit
-        )
+        return self.find_classes(package=package, name="Service", limit=limit)
 
     def find_receivers(
-        self,
-        package: Optional[str] = None,
-        limit: Optional[int] = None
-    ) -> List:
+        self, package: str | None = None, limit: int | None = None
+    ) -> list[core.RustDexClass]:
         """Find BroadcastReceiver classes.
 
         Args:
@@ -265,14 +251,11 @@ class ApkAnalyzer:
 
         Returns:
             List of BroadcastReceiver classes
-        """
-        return self.find_classes(
-            package=package,
-            name="Receiver",
-            limit=limit
-        )
 
-    def get_app_classes(self, limit: Optional[int] = None) -> List:
+        """
+        return self.find_classes(package=package, name="Receiver", limit=limit)
+
+    def get_app_classes(self, limit: int | None = None) -> list[core.RustDexClass]:
         """Get application classes (excluding android/androidx packages).
 
         Args:
@@ -280,17 +263,19 @@ class ApkAnalyzer:
 
         Returns:
             List of application classes
+
         """
         return self.find_classes(
             exclude_packages=["android", "androidx", "com.google", "kotlin", "kotlinx"],
-            limit=limit
+            limit=limit,
         )
 
-    def get_statistics(self) -> dict:
+    def get_statistics(self) -> dict[str, Any]:
         """Get statistics about the APK.
 
         Returns:
             Dictionary with APK statistics
+
         """
         classes = self.load_classes()
 
@@ -300,20 +285,20 @@ class ApkAnalyzer:
         manifest = self.manifest
 
         return {
-            'package_name': manifest.package_name,
-            'version_name': manifest.version_name,
-            'version_code': manifest.version_code,
-            'min_sdk': manifest.min_sdk_version,
-            'target_sdk': manifest.target_sdk_version,
-            'dex_count': self.dex_count,
-            'class_count': len(classes),
-            'method_count': total_methods,
-            'field_count': total_fields,
-            'activity_count': len(manifest.activities),
-            'service_count': len(manifest.services),
-            'receiver_count': len(manifest.receivers),
-            'provider_count': len(manifest.providers),
-            'permission_count': len(manifest.permissions),
+            "package_name": manifest.package_name,
+            "version_name": manifest.version_name,
+            "version_code": manifest.version_code,
+            "min_sdk": manifest.min_sdk_version,
+            "target_sdk": manifest.target_sdk_version,
+            "dex_count": self.dex_count,
+            "class_count": len(classes),
+            "method_count": total_methods,
+            "field_count": total_fields,
+            "activity_count": len(manifest.activities),
+            "service_count": len(manifest.services),
+            "receiver_count": len(manifest.receivers),
+            "provider_count": len(manifest.providers),
+            "permission_count": len(manifest.permissions),
         }
 
     def get_all_packages(self) -> list[str]:
@@ -328,6 +313,7 @@ class ApkAnalyzer:
             >>> print("Top-level packages:")
             >>> for pkg in packages[:10]:
             ...     print(f"  - {pkg}")
+
         """
         classes = self.load_classes()
         packages = set()
@@ -348,12 +334,13 @@ class ApkAnalyzer:
             >>> groups = analyzer.get_package_groups()
             >>> for top_level, pkgs in groups.items():
             ...     print(f"{top_level}: {len(pkgs)} packages")
+
         """
         packages = self.get_all_packages()
-        groups = {}
+        groups: dict[str, list[str]] = {}
 
         for pkg in packages:
-            parts = pkg.split('.')
+            parts = pkg.split(".")
             if len(parts) >= 2:
                 top_level = f"{parts[0]}.{parts[1]}"
             else:
@@ -375,12 +362,13 @@ class ApkAnalyzer:
             >>> libs = analyzer.get_third_party_libraries()
             >>> for lib, count in sorted(libs.items(), key=lambda x: -x[1])[:10]:
             ...     print(f"{lib}: {count} packages")
+
         """
         groups = self.get_package_groups()
 
         # Filter out app-specific packages
         app_package = self.manifest.package_name
-        app_prefix = '.'.join(app_package.split('.')[:2])
+        app_prefix = ".".join(app_package.split(".")[:2])
 
         third_party = {}
         for top_level, pkgs in groups.items():
@@ -389,18 +377,31 @@ class ApkAnalyzer:
                 continue
 
             # Common third-party libraries
-            if any(top_level.startswith(prefix) for prefix in [
-                'com.google', 'com.facebook', 'com.meta',
-                'androidx', 'android.support', 'com.android',
-                'kotlinx', 'kotlin', 'org.jetbrains',
-                'com.squareup', 'io.reactivex', 'com.jakewharton',
-                'org.chromium', 'com.fasterxml', 'com.github'
-            ]):
+            if any(
+                top_level.startswith(prefix)
+                for prefix in [
+                    "com.google",
+                    "com.facebook",
+                    "com.meta",
+                    "androidx",
+                    "android.support",
+                    "com.android",
+                    "kotlinx",
+                    "kotlin",
+                    "org.jetbrains",
+                    "com.squareup",
+                    "io.reactivex",
+                    "com.jakewharton",
+                    "org.chromium",
+                    "com.fasterxml",
+                    "com.github",
+                ]
+            ):
                 third_party[top_level] = len(pkgs)
 
         return third_party
 
-    def find_webview_usage(self) -> dict[str, any]:
+    def find_webview_usage(self) -> dict[str, Any]:
         """Find WebView usage in the APK.
 
         Returns:
@@ -410,6 +411,7 @@ class ApkAnalyzer:
             >>> usage = analyzer.find_webview_usage()
             >>> print(f"WebView classes: {usage['class_count']}")
             >>> print(f"Methods using WebView: {usage['method_count']}")
+
         """
         # Find WebView classes
         webview_classes = self.find_classes(name="WebView")
@@ -437,23 +439,23 @@ class ApkAnalyzer:
                     webview_methods.append((cls, method))
 
         return {
-            'class_count': len(webview_classes),
-            'classes': [cls.class_name for cls in webview_classes],
-            'method_count': len(webview_methods),
-            'methods': [
+            "class_count": len(webview_classes),
+            "classes": [cls.class_name for cls in webview_classes],
+            "method_count": len(webview_methods),
+            "methods": [
                 {
-                    'class': cls.class_name,
-                    'method': method.name,
-                    'parameters': method.parameters,
-                    'return_type': method.return_type
+                    "class": cls.class_name,
+                    "method": method.name,
+                    "parameters": method.parameters,
+                    "return_type": method.return_type,
                 }
                 for cls, method in webview_methods
-            ]
+            ],
         }
 
     # Data Flow Analysis (High-level API)
 
-    def analyze_entry_points(self) -> dict:
+    def analyze_entry_points(self) -> dict[str, Any]:
         """Analyze Android entry points (Activity, Service, etc.).
 
         Returns:
@@ -467,22 +469,21 @@ class ApkAnalyzer:
             >>> analysis = apk.analyze_entry_points()
             >>> print(f"Entry points: {len(analysis['entry_points'])}")
             >>> print(f"Deeplink handlers: {len(analysis['deeplink_handlers'])}")
+
         """
-        if not hasattr(self, '_entry_analysis'):
+        if not hasattr(self, "_entry_analysis"):
             analyzer = core.analyze_entry_points_from_apk(self._apk_path_str)
             self._entry_analysis = {
-                'analyzer': analyzer,
-                'entry_points': analyzer.analyze(),
-                'deeplink_handlers': analyzer.get_deeplink_handlers(),
-                'stats': analyzer.get_stats()
+                "analyzer": analyzer,
+                "entry_points": analyzer.analyze(),
+                "deeplink_handlers": analyzer.get_deeplink_handlers(),
+                "stats": analyzer.get_stats(),
             }
         return self._entry_analysis
 
     def find_webview_flows(
-        self,
-        max_depth: int = 10,
-        optimize: bool = True
-    ) -> List:
+        self, max_depth: int = 10, optimize: bool = True
+    ) -> list[core.Flow]:
         """Find data flows from entry points to WebView APIs.
 
         This performs advanced data flow analysis to find complete paths
@@ -504,6 +505,7 @@ class ApkAnalyzer:
             ...     print(f"  Paths: {flow.path_count}")
             ...     if flow.is_deeplink_handler:
             ...         print("  ⚠️  Deeplink vulnerability!")
+
         """
         if optimize:
             # Use optimized version with entry-point filtering (32.8x faster)
@@ -511,12 +513,9 @@ class ApkAnalyzer:
             return analyzer.find_webview_flows(max_depth)
         else:
             # Full analysis (slower but more comprehensive)
-            return core.find_webview_flows_from_apk(
-                self._apk_path_str,
-                max_depth
-            )
+            return core.find_webview_flows_from_apk(self._apk_path_str, max_depth)
 
-    def find_file_flows(self, max_depth: int = 10) -> List:
+    def find_file_flows(self, max_depth: int = 10) -> list[core.Flow]:
         """Find data flows from entry points to file I/O operations.
 
         Args:
@@ -529,11 +528,12 @@ class ApkAnalyzer:
             >>> flows = apk.find_file_flows()
             >>> for flow in flows:
             ...     print(f"{flow.entry_point} → {flow.sink_method}")
+
         """
         analyzer = core.create_data_flow_analyzer(self._apk_path_str)
         return analyzer.find_file_flows(max_depth)
 
-    def find_network_flows(self, max_depth: int = 10) -> List:
+    def find_network_flows(self, max_depth: int = 10) -> list[core.Flow]:
         """Find data flows from entry points to network operations.
 
         Args:
@@ -546,11 +546,12 @@ class ApkAnalyzer:
             >>> flows = apk.find_network_flows()
             >>> for flow in flows:
             ...     print(f"{flow.entry_point} → {flow.sink_method}")
+
         """
         analyzer = core.create_data_flow_analyzer(self._apk_path_str)
         return analyzer.find_network_flows(max_depth)
 
-    def find_sql_flows(self, max_depth: int = 10) -> List:
+    def find_sql_flows(self, max_depth: int = 10) -> list[core.Flow]:
         """Find data flows from entry points to SQL operations.
 
         Args:
@@ -563,15 +564,14 @@ class ApkAnalyzer:
             >>> flows = apk.find_sql_flows()
             >>> for flow in flows:
             ...     print(f"{flow.entry_point} → {flow.sink_method}")
+
         """
         analyzer = core.create_data_flow_analyzer(self._apk_path_str)
         return analyzer.find_sql_flows(max_depth)
 
     def find_custom_flows(
-        self,
-        sink_patterns: List[str],
-        max_depth: int = 10
-    ) -> List:
+        self, sink_patterns: list[str], max_depth: int = 10
+    ) -> list[core.Flow]:
         """Find data flows from entry points to custom sink patterns.
 
         Args:
@@ -583,22 +583,18 @@ class ApkAnalyzer:
 
         Example:
             >>> # Find flows to Runtime.exec (command execution)
-            >>> flows = apk.find_custom_flows(
-            ...     ["Runtime.exec", "ProcessBuilder.start"],
-            ...     max_depth=15
-            ... )
+            >>> flows = apk.find_custom_flows(["Runtime.exec", "ProcessBuilder.start"], max_depth=15)
             >>>
             >>> # Find flows to native library loading
             >>> flows = apk.find_custom_flows(["System.loadLibrary"])
+
         """
         analyzer = core.create_data_flow_analyzer(self._apk_path_str)
         return analyzer.find_flows_to(sink_patterns, max_depth)
 
     def find_deeplink_flows(
-        self,
-        sink_type: str = "webview",
-        max_depth: int = 10
-    ) -> List:
+        self, sink_type: str = "webview", max_depth: int = 10
+    ) -> list[core.Flow]:
         """Find flows from deeplink handlers to sinks.
 
         Args:
@@ -615,6 +611,7 @@ class ApkAnalyzer:
             >>> for flow in flows:
             ...     print(f"⚠️  Deeplink vulnerability:")
             ...     print(f"  {flow.entry_point} → {flow.sink_method}")
+
         """
         if sink_type == "webview":
             all_flows = self.find_webview_flows(max_depth)
@@ -625,7 +622,8 @@ class ApkAnalyzer:
         elif sink_type == "sql":
             all_flows = self.find_sql_flows(max_depth)
         else:
-            raise ValueError(f"Unknown sink type: {sink_type}")
+            msg = f"Unknown sink type: {sink_type}"
+            raise ValueError(msg)
 
         # Filter only deeplink handlers
         return [f for f in all_flows if f.is_deeplink_handler]

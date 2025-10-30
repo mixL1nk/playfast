@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Check current resources.arsc capabilities"""
+"""Check current resources.arsc capabilities."""
 
 from pathlib import Path
+
 from playfast import core
-import sys
+
 
 def check_resources_support(apk_path: Path):
-    """Check what resources.arsc functionality is available"""
-
+    """Check what resources.arsc functionality is available."""
     print("=" * 70)
     print("🔍 Resources.arsc Support Check")
     print("=" * 70)
@@ -21,7 +21,7 @@ def check_resources_support(apk_path: Path):
 
     # Check available functions
     print("Available core functions:")
-    resources_funcs = [attr for attr in dir(core) if 'resource' in attr.lower()]
+    resources_funcs = [attr for attr in dir(core) if "resource" in attr.lower()]
 
     if resources_funcs:
         print("  ✅ Found resource-related functions:")
@@ -33,7 +33,9 @@ def check_resources_support(apk_path: Path):
 
     # Check APK extractor
     print("Checking ApkExtractor capabilities:")
-    extractor_attrs = [attr for attr in dir(core) if 'extract' in attr.lower() or 'apk' in attr.lower()]
+    extractor_attrs = [
+        attr for attr in dir(core) if "extract" in attr.lower() or "apk" in attr.lower()
+    ]
     for attr in extractor_attrs:
         print(f"  • {attr}")
     print()
@@ -42,7 +44,7 @@ def check_resources_support(apk_path: Path):
     print("Testing binary XML parsing (AndroidManifest.xml):")
     try:
         manifest = core.parse_manifest_from_apk(str(apk_path))
-        print(f"  ✅ Manifest parsing works!")
+        print("  ✅ Manifest parsing works!")
         print(f"     Package: {manifest.package}")
         print(f"     Activities: {len(manifest.activities)}")
         print(f"     Permissions: {len(manifest.permissions)}")
@@ -74,7 +76,7 @@ def check_resources_support(apk_path: Path):
     print()
     print("Why resources.arsc parsing might be useful:")
     print("  1. Resolve resource IDs to actual values")
-    print("     Example: R.string.app_name → \"My App\"")
+    print('     Example: R.string.app_name → "My App"')
     print("  2. Extract localized strings")
     print("  3. Find hardcoded secrets in string resources")
     print("  4. Analyze resource usage patterns")
@@ -84,6 +86,7 @@ def check_resources_support(apk_path: Path):
     print("  2. Python libraries: androguard (has ARSC parser)")
     print("  3. Manual extraction with apk.extract_resources()")
     print()
+
 
 def main():
     samples_dir = Path("../samples")
@@ -97,12 +100,13 @@ def main():
         print("Just checking what functions are available in playfast.core")
         print()
         print("Available functions with 'resource' in name:")
-        resources_funcs = [attr for attr in dir(core) if 'resource' in attr.lower()]
+        resources_funcs = [attr for attr in dir(core) if "resource" in attr.lower()]
         if resources_funcs:
             for func in resources_funcs:
                 print(f"  • {func}")
         else:
             print("  ❌ No resource-related functions found")
+
 
 if __name__ == "__main__":
     main()

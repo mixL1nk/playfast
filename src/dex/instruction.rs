@@ -503,7 +503,6 @@ impl Opcode {
 
 /// Decoded Dalvik instruction
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "python", pyo3::pyclass)]
 pub enum Instruction {
     /// const/4 vA, #+B
     Const4 { dest: u8, value: i8 },

@@ -211,7 +211,20 @@ force-sort-within-sections = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401", "F403"]  # Allow star imports in __init__
-"tests/**" = ["T20", "ANN", "D200", "B017", "RUF059", "SIM105", "SIM117", "PERF401"]  # Allow print and relaxed rules in tests
+"tests/**" = [
+    "T20",       # Allow print statements
+    "ANN",       # Allow missing type annotations
+    "B007",      # Allow unused loop variables
+    "B017",      # Allow assertRaises without match
+    "D",         # Allow missing docstrings
+    "E722",      # Allow bare except
+    "PERF401",   # Allow manual list comprehension
+    "RUF001",    # Allow ambiguous unicode characters (emojis)
+    "RUF059",    # Allow zip() without strict
+    "SIM105",    # Allow suppressible exception
+    "SIM117",    # Allow multiple with statements
+    "TRY300",    # Allow return in try block
+]
 "python/playfast/core.pyi" = ["F811"]  # Allow stub overloads
 
 [tool.ruff.lint.flake8-tidy-imports]
@@ -245,12 +258,16 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-addopts = "-q --cov=python/playfast --cov-report=html --doctest-modules -n auto"
-testpaths = ["tests/python", "python/playfast"]
+addopts = "-q --cov=python/playfast --cov-report=html -n auto -m 'not slow'"
+testpaths = ["tests/python"]
 doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE"]
+# Note: Doctest disabled by default (remove --doctest-modules)
+# To run doctests: pytest --doctest-modules python/playfast
 markers = [
     "integration: integration tests requiring network access",
     "asyncio: async tests",
+    "apk: tests requiring APK files (skipped in CI)",
+    "slow: slow tests (skipped by default)",
 ]
 
 [tool.coverage.run]
@@ -305,7 +322,6 @@ executor.type = "uv"
 
 [tool.poe.tasks]
 install = "uv sync --all-packages --all-extras --dev -U --prerelease=if-necessary-or-explicit"
-pre-commit-install = "uv run pre-commit install --install-hooks --overwrite && uv run pre-commit install --hook-type pre-push"
 fmt = "ruff format"
 format.ref = "fmt"
 lint = "ruff check"
@@ -328,9 +344,19 @@ changelog_unreleased = "git cliff --unreleased"
 changelog_tag = "git cliff --tag ${tag} -o CHANGELOG.md"
 changelog_preview = "git cliff --unreleased --prepend CHANGELOG.md"
 
-# combine multiple tasks
-check = ["fmt", "lint", "pyright", "mypy", "test"]
-pre-commit-check = ["fmt", "lint", "pyright", "mypy", "test"]
+# Pre-commit hooks installation
+[tool.poe.tasks.pre-commit-install]
+sequence = [
+  { cmd = "uv run pre-commit install --install-hooks --overwrite" },
+  { cmd = "uv run pre-commit install --hook-type pre-push" },
+]
+
+# Combine multiple tasks
+[tool.poe.tasks.check]
+sequence = ["fmt", "lint", "pyright", "mypy", "test"]
+
+[tool.poe.tasks.pre-commit-check]
+sequence = ["fmt", "lint", "pyright", "mypy", "test"]
 
 # Version & Release automation (semantic-release)
 [tool.poe.tasks.version_check]

@@ -7,9 +7,8 @@
 use pyo3::prelude::*;
 use std::collections::{HashMap, HashSet};
 
-use crate::dex::entry_point_analyzer::{EntryPoint, EntryPointAnalyzer, ComponentType};
+use crate::dex::entry_point_analyzer::EntryPointAnalyzer;
 use crate::dex::call_graph::{CallGraph, CallPath};
-use crate::dex::class_decompiler::DecompiledClass;
 
 /// Represents a complete data flow from an entry point to a sink method
 #[pyclass]
@@ -255,7 +254,7 @@ impl DataFlowAnalyzer {
         let mut data_flows = Vec::new();
 
         // Intent data extraction methods to track
-        let intent_methods = vec![
+        let intent_methods = [
             "getStringExtra",
             "getIntExtra",
             "getBooleanExtra",
@@ -385,9 +384,11 @@ impl DataFlowAnalyzer {
 // ============================================================================
 
 /// Backward compatibility: WebViewFlow is now an alias for Flow
+#[allow(dead_code)]
 pub type WebViewFlow = Flow;
 
 /// Backward compatibility: WebViewFlowAnalyzer is now an alias for DataFlowAnalyzer
+#[allow(dead_code)]
 pub type WebViewFlowAnalyzer = DataFlowAnalyzer;
 
 // ============================================================================

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Test Dalvik instruction decoder"""
+"""Test Dalvik instruction decoder."""
+
 
 # Simple unit test for instruction decoding logic
 def test_const4_encoding():
-    """
-    Test const/4 instruction encoding understanding
+    """Test const/4 instruction encoding understanding.
 
     Format: const/4 vA, #+B
     - Byte 0: opcode (0x12)
@@ -57,9 +57,9 @@ def test_const4_encoding():
     print(f"Instruction: const/4 v{dest}, #{value}")
     print()
 
+
 def test_invoke_virtual_encoding():
-    """
-    Test invoke-virtual instruction encoding
+    """Test invoke-virtual instruction encoding.
 
     Format: invoke-virtual {vC, vD, vE, vF, vG}, meth@BBBB
     - Word 0: opcode + arg count
@@ -95,8 +95,11 @@ def test_invoke_virtual_encoding():
     print(f"Method index: {method_idx}")
     print(f"Arg count: {arg_count}")
     print(f"Arguments: {', '.join(f'v{a}' for a in args)}")
-    print(f"Instruction: invoke-virtual {{{'v{}, '.join(str(a) for a in args)}}}, method@{method_idx}")
+    print(
+        f"Instruction: invoke-virtual {{{'v{}, '.join(str(a) for a in args)}}}, method@{method_idx}"
+    )
     print()
+
 
 if __name__ == "__main__":
     test_const4_encoding()

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""
-Quick test script for APK extraction functionality.
+"""Quick test script for APK extraction functionality.
 This tests the basic APK loading and DEX detection.
 """
-import sys
+
 from pathlib import Path
+import sys
+
 
 # Try to import the Rust module
 try:
     from playfast import core
+
     print("✓ Successfully imported playfast.core")
 except ImportError as e:
     print(f"✗ Failed to import playfast.core: {e}")
@@ -29,13 +31,15 @@ print("=" * 60)
 
 try:
     # Extract APK info
-    dex_count, has_manifest, has_resources, dex_files = core.extract_apk_info(str(apk_path))
+    dex_count, has_manifest, has_resources, dex_files = core.extract_apk_info(
+        str(apk_path)
+    )
 
-    print(f"\n📦 APK Information:")
+    print("\n📦 APK Information:")
     print(f"   DEX Count: {dex_count}")
     print(f"   Has Manifest: {has_manifest}")
     print(f"   Has Resources: {has_resources}")
-    print(f"\n📄 DEX Files:")
+    print("\n📄 DEX Files:")
     for i, dex_file in enumerate(dex_files, 1):
         print(f"   {i}. {dex_file}")
 
@@ -52,5 +56,6 @@ try:
 except Exception as e:
     print(f"\n✗ Error during testing: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

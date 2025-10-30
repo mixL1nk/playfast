@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Test WebView settings detection"""
+"""Test WebView settings detection."""
 
 from pathlib import Path
+
 from playfast import ApkAnalyzer
-import time
+
 
 def analyze_webview_settings(apk_path, apk_name):
-    """Analyze WebView security settings"""
-    print(f"\n{'='*70}")
+    """Analyze WebView security settings."""
+    print(f"\n{'=' * 70}")
     print(f"🔍 WebView Settings Analysis: {apk_name}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     analyzer = ApkAnalyzer(str(apk_path))
 
@@ -32,10 +33,7 @@ def analyze_webview_settings(apk_path, apk_name):
 
     for method_name in settings_methods:
         # Find methods that might call this setting
-        results = analyzer.find_methods(
-            method_name=method_name,
-            limit=5
-        )
+        results = analyzer.find_methods(method_name=method_name, limit=5)
 
         if results:
             print(f"\n  ✅ {method_name}: {len(results)} usage(s) found")
@@ -51,16 +49,17 @@ def analyze_webview_settings(apk_path, apk_name):
     print("-" * 70)
 
     js_interface_methods = analyzer.find_methods(
-        method_name="addJavascriptInterface",
-        limit=10
+        method_name="addJavascriptInterface", limit=10
     )
 
     if js_interface_methods:
-        print(f"\n  ⚠️  Found {len(js_interface_methods)} JavaScript Interface registration(s)")
+        print(
+            f"\n  ⚠️  Found {len(js_interface_methods)} JavaScript Interface registration(s)"
+        )
         print("  This exposes native code to JavaScript - HIGH SECURITY RISK!\n")
 
         for cls, method in js_interface_methods[:5]:
-            params = ', '.join(method.parameters) if method.parameters else ''
+            params = ", ".join(method.parameters) if method.parameters else ""
             print(f"    - {cls.class_name}")
             print(f"      {method.name}({params})")
 
@@ -85,14 +84,23 @@ def analyze_webview_settings(apk_path, apk_name):
             print(f"    Methods: {len(cls.methods)}")
 
             # Look for init methods that might configure WebView
-            init_methods = [m for m in cls.methods if 'init' in m.name.lower() or m.name == '<init>']
+            init_methods = [
+                m for m in cls.methods if "init" in m.name.lower() or m.name == "<init>"
+            ]
             if init_methods:
                 print(f"    Init methods: {len(init_methods)}")
 
             # Look for security-related methods
-            security_keywords = ['javascript', 'settings', 'interface', 'security', 'origin']
+            security_keywords = [
+                "javascript",
+                "settings",
+                "interface",
+                "security",
+                "origin",
+            ]
             security_methods = [
-                m for m in cls.methods
+                m
+                for m in cls.methods
                 if any(kw in m.name.lower() for kw in security_keywords)
             ]
             if security_methods:
@@ -115,20 +123,24 @@ def analyze_webview_settings(apk_path, apk_name):
             print(f"  Class: {cls.simple_name}")
 
             # Check for SSL error handling
-            ssl_methods = [m for m in cls.methods if 'ssl' in m.name.lower() or 'certificate' in m.name.lower()]
+            ssl_methods = [
+                m
+                for m in cls.methods
+                if "ssl" in m.name.lower() or "certificate" in m.name.lower()
+            ]
             if ssl_methods:
                 print(f"    ⚠️  SSL handling methods: {len(ssl_methods)}")
                 for m in ssl_methods:
                     print(f"      - {m.name}()")
             else:
-                print(f"    ✅ No SSL override methods (good)")
+                print("    ✅ No SSL override methods (good)")
 
             print()
 
     # 5. Summary and Security Assessment
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("📊 Security Assessment Summary")
-    print("="*70)
+    print("=" * 70)
 
     has_js_interface = len(js_interface_methods) > 0 if js_interface_methods else False
     has_webview = len(webview_classes) > 0 if webview_classes else False
@@ -145,7 +157,7 @@ def analyze_webview_settings(apk_path, apk_name):
         risks.append("🟡 WebView in use (requires security review)")
 
     print(f"\nRisk Score: {risk_score}/10")
-    print(f"\nIdentified Risks:")
+    print("\nIdentified Risks:")
     if risks:
         for risk in risks:
             print(f"  {risk}")
@@ -165,9 +177,10 @@ def analyze_webview_settings(apk_path, apk_name):
     print("  5. Use WebViewAssetLoader for local content")
     print()
 
+
 def main():
     print("🔐 WebView Security Settings Analysis")
-    print("="*70)
+    print("=" * 70)
 
     apks = [
         ("Baemin", Path("../samples/com.sampleapp.apk")),
@@ -184,10 +197,12 @@ def main():
         except Exception as e:
             print(f"❌ Error: {e}")
             import traceback
+
             traceback.print_exc()
 
-    print("="*70)
+    print("=" * 70)
     print("✅ Analysis complete!")
+
 
 if __name__ == "__main__":
     main()

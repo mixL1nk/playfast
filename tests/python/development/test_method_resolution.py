@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Test Method Resolution - Phase 1 of Decompilation"""
+"""Test Method Resolution - Phase 1 of Decompilation."""
 
 from pathlib import Path
+
 from playfast import core
 
-def test_method_resolution(apk_path: Path):
-    """Test resolving method indices to human-readable signatures"""
 
+def test_method_resolution(apk_path: Path):
+    """Test resolving method indices to human-readable signatures."""
     print("=" * 70)
     print("🧪 Testing Method Resolution")
     print("=" * 70)
@@ -23,16 +24,16 @@ def test_method_resolution(apk_path: Path):
     all_classes = core.extract_classes_from_apk(str(apk_path))
 
     webview_classes = [
-        cls for cls in all_classes
-        if any('WebView' in method.return_type or
-               any('WebView' in param for param in method.parameters)
-               for method in cls.methods)
+        cls
+        for cls in all_classes
+        if any(
+            "WebView" in method.return_type
+            or any("WebView" in param for param in method.parameters)
+            for method in cls.methods
+        )
     ][:5]  # Take first 5 classes
 
-    bytecode_results = core.extract_methods_bytecode(
-        str(apk_path),
-        webview_classes
-    )
+    bytecode_results = core.extract_methods_bytecode(str(apk_path), webview_classes)
 
     print(f"  Found {len(bytecode_results)} methods with bytecode\n")
 
@@ -68,9 +69,9 @@ def test_method_resolution(apk_path: Path):
 
                     # Test helper methods
                     if sig.is_webview_method():
-                        print(f"   🌐 WebView method!")
+                        print("   🌐 WebView method!")
                     if sig.is_set_javascript_enabled():
-                        print(f"   🔒 JavaScript control method!")
+                        print("   🔒 JavaScript control method!")
 
                     resolved_count += 1
 
@@ -122,13 +123,17 @@ def test_method_resolution(apk_path: Path):
                             arg_reg = insn.args[1]  # Second arg (first is 'this')
                             arg_value = register_values.get(arg_reg)
 
-                        js_enabled_calls.append({
-                            'class': class_name,
-                            'method': method_name,
-                            'signature': sig,
-                            'enabled': bool(arg_value) if arg_value in [0, 1] else None,
-                            'instruction': insn.raw
-                        })
+                        js_enabled_calls.append(
+                            {
+                                "class": class_name,
+                                "method": method_name,
+                                "signature": sig,
+                                "enabled": bool(arg_value)
+                                if arg_value in [0, 1]
+                                else None,
+                                "instruction": insn.raw,
+                            }
+                        )
 
                 except Exception:
                     pass  # Skip resolution errors
@@ -138,12 +143,20 @@ def test_method_resolution(apk_path: Path):
         print(f"\n🎯 Found {len(js_enabled_calls)} setJavaScriptEnabled calls:\n")
 
         for call in js_enabled_calls:
-            sig = call['signature']
-            enabled_str = "✅ ENABLED" if call['enabled'] else "❌ DISABLED" if call['enabled'] is False else "❓ UNKNOWN"
+            sig = call["signature"]
+            enabled_str = (
+                "✅ ENABLED"
+                if call["enabled"]
+                else "❌ DISABLED"
+                if call["enabled"] is False
+                else "❓ UNKNOWN"
+            )
 
             print(f"{enabled_str}")
             print(f"   Location: {call['class'].split('.')[-1]}.{call['method']}()")
-            print(f"   Call: {sig.format_call(['true' if call['enabled'] else 'false'] if call['enabled'] is not None else ['?'])}")
+            print(
+                f"   Call: {sig.format_call(['true' if call['enabled'] else 'false'] if call['enabled'] is not None else ['?'])}"
+            )
             print(f"   Bytecode: {call['instruction']}")
             print()
     else:
@@ -167,6 +180,7 @@ def test_method_resolution(apk_path: Path):
         print("⚠️  Method resolution works, but no JavaScript control found in sample")
     print()
 
+
 def main():
     samples_dir = Path("../samples")
     apk = samples_dir / "com.sampleapp.apk"
@@ -176,6 +190,7 @@ def main():
     else:
         print(f"❌ APK not found: {apk}")
         print("Please place an APK in ../samples/")
+
 
 if __name__ == "__main__":
     main()

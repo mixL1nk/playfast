@@ -1,6 +1,6 @@
 use crate::apk::error::{ApkError, Result};
 use std::fs::File;
-use std::io::{Read, Seek};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use zip::ZipArchive;
 
@@ -19,6 +19,7 @@ impl DexEntry {
     }
 
     /// Check if this is the primary DEX file (classes.dex)
+    #[allow(dead_code)]
     pub fn is_primary(&self) -> bool {
         self.name == "classes.dex"
     }
