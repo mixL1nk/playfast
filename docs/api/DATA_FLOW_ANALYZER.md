@@ -7,6 +7,7 @@ WebView 전용이었던 flow 분석 API를 범용 Data Flow 분석 API로 리팩
 ## 변경 사항
 
 ### Before (WebView 특화)
+
 ```python
 from playfast import core
 
@@ -19,6 +20,7 @@ flows = core.analyze_webview_flows_from_apk("app.apk", max_depth=10)
 ```
 
 ### After (범용 + 편의 메서드)
+
 ```python
 from playfast import core
 
@@ -43,6 +45,7 @@ flows = core.find_network_flows_from_apk("app.apk", max_depth=10)
 ### Core Types
 
 #### `DataFlowAnalyzer`
+
 범용 데이터 플로우 분석기
 
 ```python
@@ -50,6 +53,7 @@ analyzer = core.create_data_flow_analyzer("app.apk")
 ```
 
 **Methods:**
+
 - `find_flows_to(patterns: List[str], max_depth: int) -> List[Flow]` - 범용 sink 검색
 - `find_webview_flows(max_depth: int) -> List[Flow]` - WebView 편의 메서드
 - `find_file_flows(max_depth: int) -> List[Flow]` - 파일 I/O 편의 메서드
@@ -60,6 +64,7 @@ analyzer = core.create_data_flow_analyzer("app.apk")
 - `get_stats() -> Dict` - 통계 정보
 
 #### `Flow`
+
 범용 플로우 정보 (이전 `WebViewFlow`)
 
 ```python
@@ -70,11 +75,12 @@ flow = Flow(
     paths=[...],
     is_deeplink_handler=False,
     min_path_length=3,
-    path_count=2
+    path_count=2,
 )
 ```
 
 **Attributes:**
+
 - `entry_point: str` - 진입점 클래스명
 - `component_type: str` - 컴포넌트 타입 (Activity, Service, etc.)
 - `sink_method: str` - Sink 메서드 (WebView.loadUrl, File.write, etc.)
@@ -84,10 +90,12 @@ flow = Flow(
 - `path_count: int` - 경로 개수
 
 **Methods:**
+
 - `get_shortest_path() -> CallPath` - 최단 경로 가져오기
 - `get_lifecycle_methods() -> List[str]` - 관련된 lifecycle 메서드들
 
 #### `DataFlow`
+
 Intent → Sink 데이터 플로우 정보
 
 ```python
@@ -95,7 +103,7 @@ data_flow = DataFlow(
     source="Intent.getStringExtra",
     sink="WebView.loadUrl",
     flow_path=["MainActivity.onCreate", "loadWebView", "WebView.loadUrl"],
-    confidence=0.9
+    confidence=0.9,
 )
 ```
 
@@ -118,6 +126,7 @@ flows = core.find_network_flows_from_apk("app.apk", max_depth=10)
 ## 사용 예제
 
 ### Example 1: WebView 분석 (기존과 동일)
+
 ```python
 from playfast import core
 
@@ -134,6 +143,7 @@ for flow in flows:
 ```
 
 ### Example 2: 파일 쓰기 분석 (새로운 기능)
+
 ```python
 from playfast import core
 
@@ -146,6 +156,7 @@ for flow in flows:
 ```
 
 ### Example 3: 커스텀 sink 분석
+
 ```python
 from playfast import core
 
@@ -153,9 +164,9 @@ analyzer = core.create_data_flow_analyzer("app.apk")
 
 # Custom patterns for specific security analysis
 custom_sinks = [
-    "Runtime.exec",           # Command execution
-    "ProcessBuilder.start",   # Process creation
-    "System.loadLibrary",     # Native library loading
+    "Runtime.exec",  # Command execution
+    "ProcessBuilder.start",  # Process creation
+    "System.loadLibrary",  # Native library loading
 ]
 
 flows = analyzer.find_flows_to(custom_sinks, max_depth=15)
@@ -165,6 +176,7 @@ for flow in flows:
 ```
 
 ### Example 4: Deeplink → WebView (보안 분석)
+
 ```python
 from playfast import core
 
@@ -203,9 +215,11 @@ WebViewFlowAnalyzer = DataFlowAnalyzer  # Rust type alias
 ## 마이그레이션 가이드
 
 ### 기본 사용 (변경 불필요)
+
 기존 코드는 수정 없이 계속 작동합니다.
 
 ### 새로운 기능 활용
+
 ```python
 # Before
 flows = core.analyze_webview_flows_from_apk("app.apk", max_depth=10)
@@ -233,9 +247,9 @@ entry_points = entry_analyzer.analyze()
 # 2. 패키지 추출
 packages = set()
 for ep in entry_points:
-    parts = ep.class_name.split('.')
+    parts = ep.class_name.split(".")
     if len(parts) >= 2:
-        packages.add('.'.join(parts[:2]))
+        packages.add(".".join(parts[:2]))
 
 # 3. 최적화된 call graph (32.8x faster!)
 graph = core.build_call_graph_from_apk_parallel("app.apk", list(packages))
@@ -271,33 +285,38 @@ file_flows = analyzer.find_file_flows(max_depth=10)
 ## 지원하는 Sink 타입
 
 ### WebView (보안 - XSS, JS injection)
+
 - `loadUrl`, `loadData`, `loadDataWithBaseURL`
 - `evaluateJavascript`, `addJavascriptInterface`
 - `setWebViewClient`, `setWebChromeClient`
 
 ### File I/O (보안 - Path traversal, 데이터 유출)
+
 - `FileOutputStream`, `FileWriter`
 - `RandomAccessFile.write`, `Files.write`
 
 ### Network (보안 - SSRF, 데이터 유출)
+
 - `HttpURLConnection`, `OkHttp`
 - `URLConnection.connect`, `Socket.connect`
 
 ### SQL (보안 - SQL injection)
+
 - `execSQL`, `rawQuery`
 - `SQLiteDatabase.query`
 
 ### Custom (확장 가능)
+
 원하는 패턴을 `find_flows_to()`에 전달하여 커스텀 sink 분석 가능
 
 ## 이점
 
 1. **확장성**: WebView뿐 아니라 모든 종류의 sink 분석 가능
-2. **명확한 의도**: 함수명이 실제 기능을 더 정확히 표현
-3. **재사용성**: 한 번 생성한 analyzer로 여러 sink 분석 가능
-4. **편의성**: 일반적인 use case를 위한 편의 메서드 제공
-5. **호환성**: 기존 코드 수정 불필요 (backward compatible)
-6. **보안 분석**: 다양한 보안 취약점 탐지 가능
+1. **명확한 의도**: 함수명이 실제 기능을 더 정확히 표현
+1. **재사용성**: 한 번 생성한 analyzer로 여러 sink 분석 가능
+1. **편의성**: 일반적인 use case를 위한 편의 메서드 제공
+1. **호환성**: 기존 코드 수정 불필요 (backward compatible)
+1. **보안 분석**: 다양한 보안 취약점 탐지 가능
 
 ## 참고
 

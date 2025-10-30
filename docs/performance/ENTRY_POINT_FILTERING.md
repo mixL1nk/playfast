@@ -232,26 +232,31 @@ impl CallGraphBuilder {
 ### Expected Improvements
 
 **Scenario 1: Small entry point footprint**
+
 - Entry points: 141
 - Reachable methods: ~200 (estimate)
 - Total methods: 669
 
 **Savings**:
+
 - Old: Analyze 669 methods = 142s
 - New: Analyze 200 methods = **42s** (70% faster!)
 
 **Scenario 2: Large APK with libraries**
+
 - Entry points: 500
 - Reachable methods: ~5,000
 - Total methods: 50,000 (includes unused libraries)
 
 **Savings**:
+
 - Old: Analyze 50,000 methods = 35 minutes
 - New: Analyze 5,000 methods = **3.5 minutes** (90% faster!)
 
 ### Worst Case
 
 If ALL methods are reachable:
+
 - New approach = Old approach + small index overhead (~5%)
 - Still acceptable
 
@@ -287,21 +292,15 @@ analyzer = core.analyze_entry_points_from_apk("app.apk")
 entry_points = analyzer.analyze()
 
 # Extract class names
-entry_classes = [ep['class_name'] for ep in entry_points]
+entry_classes = [ep["class_name"] for ep in entry_points]
 
 # Build incremental graph (only reachable methods)
 graph = core.build_call_graph_from_entry_points_incremental(
-    "app.apk",
-    entry_classes,
-    max_depth=10
+    "app.apk", entry_classes, max_depth=10
 )
 
 # Or use optimized WebView version
-graph = core.build_call_graph_for_webview(
-    "app.apk",
-    entry_classes,
-    max_depth=10
-)
+graph = core.build_call_graph_for_webview("app.apk", entry_classes, max_depth=10)
 ```
 
 ### Backward Compatible
@@ -321,26 +320,26 @@ graph = core.build_call_graph_for_webview("app.apk", entry_classes, 10)
 ### Phase 1: Infrastructure (Week 1)
 
 1. **DexIndex**: Class name → ClassDef lookup
-2. **Incremental decompilation**: Decompile single class by name
-3. **Unit tests**: Verify index correctness
+1. **Incremental decompilation**: Decompile single class by name
+1. **Unit tests**: Verify index correctness
 
 ### Phase 2: Forward Reachability (Week 2)
 
 1. **BFS from entry points**: Implement algorithm
-2. **Parallel incremental**: Parallelize BFS exploration
-3. **Benchmark**: Compare with full analysis
+1. **Parallel incremental**: Parallelize BFS exploration
+1. **Benchmark**: Compare with full analysis
 
 ### Phase 3: Backward Reachability (Week 3)
 
 1. **Reverse index**: Build caller→callee map
-2. **Hybrid algorithm**: Forward + backward
-3. **WebView optimization**: Specialized for security analysis
+1. **Hybrid algorithm**: Forward + backward
+1. **WebView optimization**: Specialized for security analysis
 
 ### Phase 4: Integration (Week 4)
 
 1. **Update WebViewFlowAnalyzer**: Use incremental graph
-2. **Documentation**: Update all guides
-3. **Migration**: Add deprecation warnings for old API
+1. **Documentation**: Update all guides
+1. **Migration**: Add deprecation warnings for old API
 
 ## Success Metrics
 
@@ -352,12 +351,14 @@ graph = core.build_call_graph_for_webview("app.apk", entry_classes, 10)
 ## Trade-offs
 
 ### Pros
+
 ✅ Much faster for typical use cases
 ✅ Better scalability
 ✅ Lower memory footprint
 ✅ Focused analysis (security-relevant code only)
 
 ### Cons
+
 ❌ Slightly more complex implementation
 ❌ Requires building index (one-time cost ~3s)
 ❌ May miss dead code (but that's usually desired!)
@@ -373,7 +374,7 @@ Entry-point-driven analysis is a **significant optimization** for security analy
 
 **Recommendation**: Implement this as the new default for WebView analysis, while keeping full analysis available for completeness checking.
 
----
+______________________________________________________________________
 
 **Status**: Design complete, ready for implementation
 **Estimated effort**: 3-4 weeks

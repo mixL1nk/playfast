@@ -3,14 +3,17 @@
 ## 현재 문제점
 
 ### 1. API 수준 불일치
+
 ```python
 # 예제 1: apk_security_audit.py (고수준, 좋음)
 from playfast import ApkAnalyzer
+
 analyzer = ApkAnalyzer("app.apk")
 dangerous_perms = analyzer.manifest.permissions
 
 # 예제 2: webview_flow_quick_demo.py (저수준, 나쁨)
 from playfast import core
+
 analyzer = core.analyze_entry_points_from_apk(apk)
 entry_points = analyzer.analyze()
 flows = core.find_webview_flows_from_apk(apk, max_depth=10)
@@ -19,7 +22,9 @@ flows = core.find_webview_flows_from_apk(apk, max_depth=10)
 **문제**: 같은 라이브러리인데 API 수준이 다름
 
 ### 2. 기능 격차
+
 `ApkAnalyzer`에는:
+
 - ✅ 기본 검색: `find_classes()`, `find_methods()`
 - ✅ WebView 검색: `find_webview_usage()` (단순)
 - ❌ **Data Flow 분석 없음** - `core`를 직접 사용해야 함
@@ -89,21 +94,18 @@ def analyze_entry_points(self):
         - deeplink_handlers: List[EntryPoint]
         - statistics: dict
     """
-    if not hasattr(self, '_entry_analysis'):
+    if not hasattr(self, "_entry_analysis"):
         analyzer = core.analyze_entry_points_from_apk(self._apk_path_str)
         self._entry_analysis = {
-            'analyzer': analyzer,
-            'entry_points': analyzer.analyze(),
-            'deeplink_handlers': analyzer.get_deeplink_handlers(),
-            'stats': analyzer.get_stats()
+            "analyzer": analyzer,
+            "entry_points": analyzer.analyze(),
+            "deeplink_handlers": analyzer.get_deeplink_handlers(),
+            "stats": analyzer.get_stats(),
         }
     return self._entry_analysis
 
-def find_webview_flows(
-    self,
-    max_depth: int = 10,
-    optimize: bool = True
-) -> List:
+
+def find_webview_flows(self, max_depth: int = 10, optimize: bool = True) -> List:
     """Find data flows from entry points to WebView APIs.
 
     Args:
@@ -127,31 +129,28 @@ def find_webview_flows(
         return analyzer.find_webview_flows(max_depth)
     else:
         # Full analysis (slower)
-        return core.find_webview_flows_from_apk(
-            self._apk_path_str,
-            max_depth
-        )
+        return core.find_webview_flows_from_apk(self._apk_path_str, max_depth)
+
 
 def find_file_flows(self, max_depth: int = 10) -> List:
     """Find data flows to file I/O operations."""
     analyzer = core.create_data_flow_analyzer(self._apk_path_str)
     return analyzer.find_file_flows(max_depth)
 
+
 def find_network_flows(self, max_depth: int = 10) -> List:
     """Find data flows to network operations."""
     analyzer = core.create_data_flow_analyzer(self._apk_path_str)
     return analyzer.find_network_flows(max_depth)
+
 
 def find_sql_flows(self, max_depth: int = 10) -> List:
     """Find data flows to SQL operations."""
     analyzer = core.create_data_flow_analyzer(self._apk_path_str)
     return analyzer.find_sql_flows(max_depth)
 
-def find_custom_flows(
-    self,
-    sink_patterns: List[str],
-    max_depth: int = 10
-) -> List:
+
+def find_custom_flows(self, sink_patterns: List[str], max_depth: int = 10) -> List:
     """Find data flows to custom sink patterns.
 
     Args:
@@ -172,6 +171,7 @@ def find_custom_flows(
 ### Step 2: 예제 업데이트
 
 **Before** (`webview_flow_quick_demo.py`):
+
 ```python
 from playfast import core
 
@@ -182,6 +182,7 @@ flows = core.analyze_webview_flows_from_apk(apk_path, max_depth=5)
 ```
 
 **After**:
+
 ```python
 from playfast import ApkAnalyzer
 
@@ -199,27 +200,33 @@ print(f"Deeplink handlers: {len(entry_analysis['deeplink_handlers'])}")
 ## Benefits
 
 ### 1. 일관된 API
+
 - 모든 분석 기능이 `ApkAnalyzer`를 통해 접근
 - 저수준 `core` API는 고급 사용자만 사용
 
 ### 2. 사용성 개선
+
 ```python
 # Before (3단계, 저수준)
 from playfast import core
+
 analyzer = core.analyze_entry_points_from_apk(apk)
 entry_points = analyzer.analyze()
 flows = core.find_webview_flows_from_apk(apk, max_depth=10)
 
 # After (1단계, 고수준)
 from playfast import ApkAnalyzer
+
 apk = ApkAnalyzer(apk)
 flows = apk.find_webview_flows(max_depth=10)
 ```
 
 ### 3. 성능 최적화 기본 제공
+
 `optimize=True` (default)로 자동으로 32.8x 최적화 적용
 
 ### 4. 통합 보안 분석
+
 ```python
 apk = ApkAnalyzer("app.apk")
 
@@ -235,20 +242,24 @@ audit_results = apk.security_audit()
 ## Migration Guide
 
 ### Simple Usage
+
 기존 `core` 사용 코드는 `ApkAnalyzer`로 간단히 변경:
 
 ```python
 # Before
 from playfast import core
+
 flows = core.find_webview_flows_from_apk("app.apk", max_depth=10)
 
 # After
 from playfast import ApkAnalyzer
+
 apk = ApkAnalyzer("app.apk")
 flows = apk.find_webview_flows(max_depth=10)
 ```
 
 ### Advanced Usage
+
 고급 사용자는 여전히 `core` 직접 사용 가능:
 
 ```python
@@ -268,32 +279,37 @@ flows = analyzer.find_flows_to(["custom_pattern"], max_depth=20)
 ## Implementation Priority
 
 1. **High Priority**: Data flow 메서드 추가
+
    - `find_webview_flows()`
    - `find_file_flows()`
    - `find_network_flows()`
    - `find_custom_flows()`
 
-2. **Medium Priority**: Entry point 메서드
+1. **Medium Priority**: Entry point 메서드
+
    - `analyze_entry_points()`
    - `find_deeplink_flows()`
 
-3. **Low Priority**: 통합 보안 분석
+1. **Low Priority**: 통합 보안 분석
+
    - `security_audit()`
 
 ## 예상 효과
 
 ### Before (불편)
+
 - 예제마다 다른 API 사용
 - 저수준 API 학습 필요
 - 성능 최적화 직접 구현
 
 ### After (편리)
+
 - 일관된 고수준 API
 - 직관적인 메서드 이름
 - 자동 최적화 적용
 - 쉬운 보안 분석
 
----
+______________________________________________________________________
 
 **Status**: 제안 단계
 **Next Step**: ApkAnalyzer 확장 구현

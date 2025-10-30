@@ -98,7 +98,7 @@ def main():
 
             print(f"      Entry points with WebView access:")
             for ep, ep_flows in list(entry_point_groups.items())[:10]:
-                wv_methods = set(f.webview_method.split('.')[-1] for f in ep_flows)
+                wv_methods = {f.webview_method.split('.')[-1] for f in ep_flows}
                 print(f"      • {ep.split('.')[-1]}")
                 print(f"        Methods: {', '.join(list(wv_methods)[:3])}")
                 print(f"        Paths: {sum(f.path_count for f in ep_flows)}")
