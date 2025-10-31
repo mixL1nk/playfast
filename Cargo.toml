@@ -34,3 +34,6 @@ byteorder = "1.5"  # For reading binary data in little-endian format
 
 # Google Play API for APK download
 gpapi = { git = "https://github.com/EFForg/rs-google-play.git", package = "gpapi" }
+
+# OpenSSL vendoring for manylinux compatibility
+openssl = { version = "0.10", features = ["vendored"] }
