@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-10-31
+
+### 🐛 Bug Fixes
+
+- Add vendored OpenSSL for manylinux builds (96e4d7f)
+
+### 🔧 Miscellaneous Tasks
+
+- Update uv.lock for OpenSSL vendored feature (aaa9af1)
+- **release:** 0.5.1 (d26966d)
+
 ## [0.5.0] - 2025-10-31
 
 ### 🐛 Bug Fixes
@@ -22,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔧 Miscellaneous Tasks
 
 - **release:** 0.5.0 (1e7d0a3)
-- **release:** 0.5.0 (5b8ffbb)
+- **release:** 0.5.0 (83d9104)
 
 ### 🚀 Features
 
