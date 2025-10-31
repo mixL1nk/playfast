@@ -1,13 +1,19 @@
 """Finalize release by amending changelog and running formatters."""
 
+import os
 import subprocess
 import sys
 
 
-def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess[str]:
+def run_command(
+    cmd: list[str], check: bool = True, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     """Run a command and return the result."""
     print(f"Running: {' '.join(cmd)}")
-    return subprocess.run(cmd, check=check, capture_output=True, text=True)
+    cmd_env = os.environ.copy()
+    if env:
+        cmd_env.update(env)
+    return subprocess.run(cmd, check=check, capture_output=True, text=True, env=cmd_env)
 
 
 def has_changes() -> bool:
@@ -20,32 +26,46 @@ def main() -> None:
     """Finalize the release commit."""
     print("\n=== Finalizing Release ===\n")
 
+    # Prepare environment to skip uv-lock hook
+    env = {"SKIP": "uv-lock"}
+
     # Stage changelog files
     print("1. Staging changelog files...")
     run_command(["git", "add", "CHANGELOG.md", "docs/changelog.md"])
 
     # First amend without verification to include changelogs
     print("2. Amending commit with changelogs...")
-    run_command(["git", "commit", "--amend", "--no-edit", "--no-verify"])
+    run_command(["git", "commit", "--amend", "--no-edit", "--no-verify"], env=env)
 
     # Run formatters (mdformat, etc.) - allow failure
-    print("3. Running formatters...")
-    result = run_command(["pre-commit", "run", "mdformat", "--all-files"], check=False)
+    print("3. Running formatters on changelogs...")
+    result = run_command(
+        [
+            "pre-commit",
+            "run",
+            "mdformat",
+            "--files",
+            "CHANGELOG.md",
+            "docs/changelog.md",
+        ],
+        check=False,
+        env=env,
+    )
     if result.returncode != 0:
         print("   Formatters modified files")
 
     # Check if formatters made changes
     if has_changes():
         print("4. Formatters modified files, amending again...")
-        run_command(["git", "add", "-A"])
-        run_command(["git", "commit", "--amend", "--no-edit", "--no-verify"])
-        print("   OK Changes incorporated into release commit")
+        run_command(["git", "add", "CHANGELOG.md", "docs/changelog.md"])
+        run_command(["git", "commit", "--amend", "--no-edit", "--no-verify"], env=env)
+        print("   OK: Changes incorporated into release commit")
     else:
         print("4. No additional changes needed")
 
     # Get final commit info
     result = run_command(["git", "log", "-1", "--oneline"])
-    print(f"\nOK Release finalized: {result.stdout.strip()}")
+    print(f"\nOK: Release finalized: {result.stdout.strip()}")
 
     # Check if previous commit has a tag (semantic-release creates it on previous commit)
     result = run_command(
@@ -58,15 +78,15 @@ def main() -> None:
         run_command(["git", "tag", "-d", old_tag])
         # Create tag on current commit
         run_command(["git", "tag", old_tag])
-        print(f"   OK Tag '{old_tag}' moved to current commit")
+        print(f"   OK: Tag '{old_tag}' moved to current commit")
 
         # Get final commit info
         result = run_command(["git", "log", "-1", "--oneline"])
-        print(f"\nOK Release finalized: {result.stdout.strip()}")
-        print(f"OK Tag: {old_tag}")
+        print(f"\nOK: Release finalized: {result.stdout.strip()}")
+        print(f"OK: Tag: {old_tag}")
         print("\nNext steps:")
         print("  git push origin main")
-        print(f"  git push origin {old_tag}")
+        print(f"  git push origin {old_tag} --force")
     else:
         # Check if current commit has a tag
         result = run_command(
@@ -74,10 +94,10 @@ def main() -> None:
         )
         if result.returncode == 0:
             tag = result.stdout.strip()
-            print(f"\nOK Tag already on HEAD: {tag}")
+            print(f"\nOK: Tag already on HEAD: {tag}")
             print("\nNext steps:")
             print("  git push origin main")
-            print(f"  git push origin {tag}")
+            print(f"  git push origin {tag} --force")
         else:
             print("\nWARNING: No tag found")
             print("This is unexpected - semantic-release should have created a tag")

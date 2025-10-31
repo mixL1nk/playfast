@@ -1,5 +1,6 @@
-"""Safe release workflow with conflict prevention."""
+"""Safe release workflow with conflict prevention and pre-commit integration."""
 
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -10,20 +11,30 @@ def run(
     check: bool = True,
     cwd: Path | None = None,
     capture_output: bool = True,
+    env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run command and return result."""
     print(f"$ {' '.join(cmd)}")
+    cmd_env = os.environ.copy()
+    if env:
+        cmd_env.update(env)
     return subprocess.run(
-        cmd, check=check, capture_output=capture_output, text=True, cwd=cwd
+        cmd, check=check, capture_output=capture_output, text=True, cwd=cwd, env=cmd_env
     )
 
 
 def run_interactive(
-    cmd: list[str], check: bool = True, cwd: Path | None = None
+    cmd: list[str],
+    check: bool = True,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run command with live output (no capture)."""
     print(f"$ {' '.join(cmd)}")
-    result = subprocess.run(cmd, check=check, text=True, cwd=cwd)
+    cmd_env = os.environ.copy()
+    if env:
+        cmd_env.update(env)
+    result = subprocess.run(cmd, check=check, text=True, cwd=cwd, env=cmd_env)
     return result
 
 
@@ -102,48 +113,38 @@ def main() -> None:
 
     # 6. Create release (local only)
     print("\nStep 4: Creating release (local only)...")
+    print("   Running: check → semantic-release → changelog → finalize")
+    print("   (This may take a few minutes...)\n")
+
     try:
-        # Run the existing release command
-        result = run(["poe", "release"])
-        print(result.stdout)
+        # Run release with SKIP=uv-lock to prevent lockfile updates during release
+        result = run_interactive(
+            ["uv", "run", "poe", "release"], env={"SKIP": "uv-lock"}
+        )
     except subprocess.CalledProcessError as e:
-        print(f"ERROR: Release failed: {e}")
-        print(e.stdout)
-        print(e.stderr)
+        print(f"\nERROR: Release failed: {e}")
+        print("\nPossible causes:")
+        print("  - Tests failed (run: uv run poe test)")
+        print("  - Type checks failed (run: uv run poe pyright)")
+        print("  - No commits since last release")
         sys.exit(1)
 
-    # 7. Show what was created
-    print("\nStep 5: Release created successfully!\n")
+    # 7. Verify release was created
+    print("\nStep 5: Verifying release...\n")
     result = run(["git", "log", "-1", "--oneline"])
     release_commit = result.stdout.strip()
     print(f"   Commit: {release_commit}")
 
-    # 7.1. Check if tag was created
+    # Check tag on HEAD
     result = run(["git", "describe", "--tags", "--exact-match"], check=False)
-    created_tag = None
     if result.returncode == 0:
         created_tag = result.stdout.strip()
         print(f"   Tag: {created_tag}")
     else:
-        # Tag not on HEAD, check if it's on previous commit
-        result = run(
-            ["git", "describe", "--tags", "--exact-match", "HEAD~1"], check=False
-        )
-        if result.returncode == 0:
-            old_tag = result.stdout.strip()
-            print(f"   WARNING: Tag '{old_tag}' is on previous commit, moving it...")
-            # Move tag to current commit
-            run(["git", "tag", "-d", old_tag])
-            run(["git", "tag", old_tag])
-            created_tag = old_tag
-            print(f"   OK: Tag '{old_tag}' moved to current commit")
-        else:
-            print("   WARNING: No tag found")
-            print("   This may happen if semantic-release failed")
-            response = input("   Continue anyway? [y/N]: ")
-            if response.lower() != "y":
-                print("\nRelease cancelled. Manual investigation needed.")
-                sys.exit(1)
+        print("\nERROR: No tag found on HEAD")
+        print("The finalize_release script should have created a tag")
+        print("Check the release output above for errors")
+        sys.exit(1)
 
     # 8. Final confirmation before push
     print("\n" + "=" * 50)
@@ -151,69 +152,53 @@ def main() -> None:
     if response.lower() == "y":
         print("\nStep 6: Pushing to remote...")
 
-        # Try to push, handle conflicts
+        # Try to push main branch
         try:
             run_interactive(["git", "push", "origin", "main"], check=True)
-            push_main_success = True
+            print("   OK: main branch pushed")
         except subprocess.CalledProcessError:
-            print("\nWARNING: Push failed (likely due to remote changes)")
-            print("Attempting to resolve...")
+            print("\nERROR: Push rejected (remote has changes)")
+            print("\nThis usually means:")
+            print("  - Someone else pushed to main")
+            print("  - You have multiple machines with uncommitted work")
+            print("\nRecommended fix:")
+            print("  1. Abort this release: git reset --hard HEAD~1")
+            print(f"  2. Delete the tag: git tag -d {created_tag}")
+            print("  3. Pull latest changes: git pull origin main")
+            print("  4. Re-run: uv run poe safe_release")
+            print("\nThis ensures a clean, conflict-free release.")
+            sys.exit(1)
 
-            # Fetch and check divergence
-            run(["git", "fetch", "origin"])
-            local = run(["git", "rev-parse", "main"]).stdout.strip()
-            remote = run(["git", "rev-parse", "origin/main"]).stdout.strip()
+        # Push tag with force (in case it was moved)
+        print(f"\nPushing tag {created_tag}...")
+        try:
+            run_interactive(
+                ["git", "push", "origin", created_tag, "--force"], check=True
+            )
+            print(f"   OK: Tag {created_tag} pushed")
+        except subprocess.CalledProcessError:
+            print(f"\nERROR: Failed to push tag {created_tag}")
+            print("This is unexpected. Try manually:")
+            print(f"  git push origin {created_tag} --force")
+            sys.exit(1)
 
-            if local == remote:
-                print("ERROR: Unknown push error (not a divergence issue)")
-                sys.exit(1)
-
-            # Pull with merge
-            print("\nAttempting to merge with remote...")
-            try:
-                run_interactive(["git", "pull", "origin", "main"], check=True)
-                print("OK: Merged successfully")
-
-                # If we had a tag, move it to the new merge commit
-                if created_tag:
-                    print(f"Moving tag '{created_tag}' to merge commit...")
-                    run(["git", "tag", "-d", created_tag])
-                    run(["git", "tag", created_tag])
-                    print(f"OK: Tag '{created_tag}' moved to merge commit")
-
-                # Retry push
-                print("\nRetrying push...")
-                run_interactive(["git", "push", "origin", "main"], check=True)
-                push_main_success = True
-            except subprocess.CalledProcessError as e:
-                print(f"\nERROR: Failed to resolve conflict: {e}")
-                print("\nManual resolution needed:")
-                print("  1. git pull --rebase origin main")
-                print("  2. Resolve conflicts")
-                print("  3. git push origin main")
-                if created_tag:
-                    print(f"  4. git push origin {created_tag}")
-                sys.exit(1)
-
-        # Push tags
-        if push_main_success and created_tag:
-            print("\nPushing tags...")
-            try:
-                run_interactive(["git", "push", "origin", created_tag], check=True)
-                print(f"\nOK: Tag '{created_tag}' pushed successfully!")
-            except subprocess.CalledProcessError:
-                print(f"\nWARNING: Failed to push tag '{created_tag}'")
-                print("You may need to force push:")
-                print(f"  git push origin {created_tag} --force")
-
-        print("\nOK: Release pushed successfully!")
-        print("\nNext step: Wait for CI to pass, then run:")
-        print("  uv run poe release_publish")
+        print("\n" + "=" * 50)
+        print("✅ Release pushed successfully!")
+        print("\nThe GitHub Release workflow will now:")
+        print("  1. Build wheels for Linux, Windows, macOS")
+        print("  2. Publish to PyPI")
+        print("  3. Create GitHub Release with artifacts")
+        print("\nMonitor progress at:")
+        print("  https://github.com/mixL1nk/playfast/actions")
     else:
-        print("\nRelease created locally. Push manually when ready:")
+        print("\n" + "=" * 50)
+        print("Release created locally (not pushed)")
+        print("\nTo push manually later:")
         print("  git push origin main")
-        if created_tag:
-            print(f"  git push origin {created_tag}")
+        print(f"  git push origin {created_tag} --force")
+        print("\nTo undo this release:")
+        print("  git reset --hard HEAD~1")
+        print(f"  git tag -d {created_tag}")
 
 
 if __name__ == "__main__":
