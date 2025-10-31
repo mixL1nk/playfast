@@ -5,28 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - 2025-10-30
-
-### 🐛 Bug Fixes
-
-- Safe_release with auto-recovery and better error handling (7b11c7a)
-- Add future annotations import to conftest.py for Python 3.11/3.12 (b95bead)
-- Move standalone test scripts causing CI failure (b0b0ed5)
-- Move integration test scripts requiring APK files to examples (5eeafb6)
-
-### 📚 Documentation
-
-- Specify branch in CI badge URL to improve cache consistency (8c26d5e)
-
-### 🔧 Miscellaneous Tasks
-
-- **release:** 0.5.0 (4cd2c0f)
-
-### 🚀 Features
-
-- Add APK downloader and comprehensive type safety improvements (76f251b)
-
-## [0.4.0] - 2025-10-14
+## [unreleased] - 2025-10-14
 
 ### ♻️ Refactor
 
