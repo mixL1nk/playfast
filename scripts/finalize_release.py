@@ -29,6 +29,10 @@ def main() -> None:
     # Prepare environment to skip uv-lock hook
     env = {"SKIP": "uv-lock"}
 
+    # Capture pre-amend commit hash to find tag later
+    pre_amend_hash = run_command(["git", "rev-parse", "HEAD"]).stdout.strip()
+    print(f"Pre-amend commit: {pre_amend_hash}")
+
     # Stage changelog files
     print("1. Staging changelog files...")
     run_command(["git", "add", "CHANGELOG.md", "docs/changelog.md"])
@@ -67,13 +71,15 @@ def main() -> None:
     result = run_command(["git", "log", "-1", "--oneline"])
     print(f"\nOK: Release finalized: {result.stdout.strip()}")
 
-    # Check if previous commit has a tag (semantic-release creates it on previous commit)
+    # Check if pre-amend commit had a tag (semantic-release creates tag before amend)
     result = run_command(
-        ["git", "describe", "--tags", "--exact-match", "HEAD~1"], check=False
+        ["git", "describe", "--tags", "--exact-match", pre_amend_hash], check=False
     )
     if result.returncode == 0:
         old_tag = result.stdout.strip()
-        print(f"\n5. Found tag '{old_tag}' on previous commit, moving to HEAD...")
+        print(
+            f"\n5. Found tag '{old_tag}' on pre-amend commit {pre_amend_hash[:7]}, moving to HEAD..."
+        )
         # Delete old tag
         run_command(["git", "tag", "-d", old_tag])
         # Create tag on current commit
