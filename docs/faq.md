@@ -60,20 +60,18 @@ See [Installation Troubleshooting](installation.md#troubleshooting).
 
 ### Can I use Playfast synchronously?
 
-No, Playfast is async-only. You must use `asyncio`:
+Yes. Use the `RustClient`, which wraps the high-performance Rust core with a synchronous API:
 
 ```python
-import asyncio
-from playfast import AsyncClient
+from playfast import RustClient
 
 
-async def main():
-    async with AsyncClient() as client:
-        app = await client.get_app("com.example.app")
-
-
-asyncio.run(main())
+client = RustClient(timeout=30)
+app = client.get_app("com.example.app")
+print(app["title"])
 ```
+
+For more examples, see the [RustClient quick start](index.md#option-2-rustclient-maximum-performance) and the [parallel batch guide](index.md#rustclient---parallel-batch-processing).
 
 ### How many concurrent requests can I make?
 

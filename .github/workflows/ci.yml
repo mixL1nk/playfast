@@ -36,17 +36,17 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.11'
             run-tests: true
-            with-coverage: true
+            build-profile: release
           # Quick compatibility checks
           - os: ubuntu-latest
             python-version: '3.12'
             run-tests: true
-            with-coverage: false
+            build-profile: release
           # macOS build verification
           - os: macos-latest
             python-version: '3.11'
             run-tests: false
-            with-coverage: false
+            build-profile: dev
           # Note: Windows CI removed - verified via release workflow
           # Windows users install pre-built wheels from PyPI
 
@@ -87,7 +87,13 @@ jobs:
         run: uv sync --only-group ci-test
 
       - name: Build Rust extension
-        run: uv run maturin develop --release
+        run: |
+          PROFILE="${{ matrix.build-profile }}"
+          EXTRA_ARGS=""
+          if [ "$PROFILE" != "dev" ]; then
+            EXTRA_ARGS="--release"
+          fi
+          uv run maturin develop --profile "$PROFILE" $EXTRA_ARGS
 
       - name: Run tests
         if: matrix.run-tests
@@ -117,7 +123,7 @@ jobs:
       - name: Coverage Summary
         if: matrix.with-coverage
         run: |
-          uv run pytest --cov=python/playfast --cov-report=term-missing --cov-fail-under=75
+          uv run python -m coverage report --show-missing --fail-under=75
         env:
           CI: "1"
 
