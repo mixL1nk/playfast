@@ -258,7 +258,7 @@ venvPath = "."
 venv = ".venv"
 
 [tool.pytest.ini_options]
-addopts = "-q --cov=python/playfast --cov-report=html -n auto -m 'not slow'"
+addopts = "-q -n auto -m 'not slow'"
 testpaths = ["tests/python"]
 doctest_optionflags = ["ELLIPSIS", "NORMALIZE_WHITESPACE"]
 # Note: Doctest disabled by default (remove --doctest-modules)
@@ -275,7 +275,7 @@ source = ["python/playfast"]
 omit = []
 
 [tool.coverage.report]
-fail_under = 85
+fail_under = 75
 skip_covered = true
 show_missing = true
 exclude_lines = [

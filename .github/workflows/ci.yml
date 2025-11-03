@@ -37,16 +37,19 @@ jobs:
             python-version: '3.11'
             run-tests: true
             build-profile: release
+            with-coverage: true
           # Quick compatibility checks
           - os: ubuntu-latest
             python-version: '3.12'
             run-tests: true
             build-profile: release
+            with-coverage: false
           # macOS build verification
           - os: macos-latest
             python-version: '3.11'
             run-tests: false
             build-profile: dev
+            with-coverage: false
           # Note: Windows CI removed - verified via release workflow
           # Windows users install pre-built wheels from PyPI
 
