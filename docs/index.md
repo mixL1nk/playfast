@@ -108,9 +108,8 @@ async def main():
         app = await client.get_app("com.spotify.music")
         print(f"{app.title}: {app.score}⭐")
 
-        # Get reviews
-        reviews, next_token = await client.get_reviews("com.spotify.music")
-        for review in reviews:
+        # Stream reviews (async generator)
+        async for review in client.stream_reviews("com.spotify.music"):
             print(f"{review.user_name}: {review.content[:100]}")
 
 
@@ -275,7 +274,7 @@ class AsyncClient:
     def __init__(self, max_concurrent: int = 10, timeout: int = 30)
 
     async def get_app(self, app_id: str, country: str = "us") -> AppInfo
-    async def get_reviews(self, app_id: str, sort: int = 1) -> tuple[list[Review], str | None]
+    async def stream_reviews(self, app_id: str, sort: int = 1) -> AsyncIterator[Review]
     async def search(self, query: str, country: str = "us", n_hits: int = 30) -> list[SearchResult]
 ```
 
