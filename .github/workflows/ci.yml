@@ -36,14 +36,17 @@ jobs:
           - os: ubuntu-latest
             python-version: '3.11'
             run-tests: true
+            with-coverage: true
           # Quick compatibility checks
           - os: ubuntu-latest
             python-version: '3.12'
             run-tests: true
+            with-coverage: false
           # macOS build verification
           - os: macos-latest
             python-version: '3.11'
             run-tests: false
+            with-coverage: false
           # Note: Windows CI removed - verified via release workflow
           # Windows users install pre-built wheels from PyPI
 
@@ -88,7 +91,12 @@ jobs:
 
       - name: Run tests
         if: matrix.run-tests
-        run: uv run pytest --cov=python/playfast --cov-report=xml --cov-report=html --cov-fail-under=75
+        run: |
+          if [ "${{ matrix.with-coverage }}" = "true" ]; then
+            uv run pytest --cov=python/playfast --cov-report=xml --cov-report=html --cov-fail-under=75
+          else
+            uv run pytest
+          fi
         env:
           CI: "1"
 
@@ -98,7 +106,7 @@ jobs:
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: matrix.with-coverage
         with:
           name: coverage-report
           path: |
@@ -107,14 +115,14 @@ jobs:
           retention-days: 30
 
       - name: Coverage Summary
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: matrix.with-coverage
         run: |
           uv run pytest --cov=python/playfast --cov-report=term-missing --cov-fail-under=75
         env:
           CI: "1"
 
       - name: Extract coverage percentage
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        if: matrix.with-coverage
         id: coverage
         run: |
           COVERAGE=$(uv run python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(f\"{float(root.attrib['line-rate']) * 100:.1f}\")")
@@ -122,7 +130,7 @@ jobs:
           echo "Coverage: $COVERAGE%"
 
       - name: Create coverage badge
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11' && github.ref == 'refs/heads/main'
+        if: matrix.with-coverage && github.ref == 'refs/heads/main'
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
