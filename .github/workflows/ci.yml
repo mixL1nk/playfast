@@ -109,7 +109,7 @@ jobs:
       - name: Coverage Summary
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         run: |
-          uv run pytest --cov=python/playfast --cov-report=term-missing --cov-fail-under=75
+          uv run python -m coverage report --show-missing --fail-under=75
         env:
           CI: "1"
 
